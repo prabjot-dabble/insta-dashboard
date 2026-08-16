@@ -1,0 +1,77 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import type { FetchState } from "@/app/lib/useApiData";
+import type { ContentItem, ContentType, PartialListResult } from "@/app/lib/types";
+import { ContentTable } from "./ContentTable";
+import { SectionHeading } from "./SectionHeading";
+import { ErrorNotice, EmptyState } from "./StatusNotices";
+import { SkeletonTable } from "./Skeletons";
+
+interface ContentPerformanceSectionProps {
+  reelsState: FetchState<PartialListResult<ContentItem>>;
+  feedState: FetchState<PartialListResult<ContentItem>>;
+}
+
+type PerformanceFilter = "all" | ContentType;
+
+const FILTERS: Array<{ value: PerformanceFilter; label: string }> = [
+  { value: "all", label: "All" },
+  { value: "REEL", label: "Reels" },
+  { value: "POST", label: "Posts" },
+  { value: "CAROUSEL", label: "Carousels" },
+];
+
+/**
+ * Combines the already-fetched Reels and Feed datasets client-side — no new requests. This is the
+ * same principle as the table's own client-side sorting: the API has already supplied everything
+ * needed, so combining/filtering/sorting stays entirely in the browser.
+ */
+export function ContentPerformanceSection({ reelsState, feedState }: ContentPerformanceSectionProps) {
+  const [filter, setFilter] = useState<PerformanceFilter>("all");
+  const loading = reelsState.status === "loading" || feedState.status === "loading";
+  const bothFailed = reelsState.status === "error" && feedState.status === "error";
+
+  const combined = useMemo(() => {
+    const reels = reelsState.status === "success" ? reelsState.data.data : [];
+    const feed = feedState.status === "success" ? feedState.data.data : [];
+    return [...reels, ...feed];
+  }, [reelsState, feedState]);
+
+  const filtered = filter === "all" ? combined : combined.filter((item) => item.contentType === filter);
+
+  return (
+    <section id="content-performance" className="mx-auto max-w-7xl px-6 py-14 md:px-10">
+      <SectionHeading number="08" title="Content Performance" />
+
+      {loading && <SkeletonTable rows={8} />}
+
+      {!loading && bothFailed && <ErrorNotice sectionLabel="Content Performance" detail={reelsState.status === "error" ? reelsState.message : undefined} />}
+
+      {!loading && !bothFailed && combined.length === 0 && <EmptyState message="No content published in this period" />}
+
+      {!loading && !bothFailed && combined.length > 0 && (
+        <div>
+          <div className="mb-4 flex justify-end">
+            <div className="flex gap-1 border border-border-strong p-0.5" role="group" aria-label="Filter content type">
+              {FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  type="button"
+                  onClick={() => setFilter(f.value)}
+                  aria-pressed={filter === f.value}
+                  className={`px-3 py-1 text-xs transition-colors ${
+                    filter === f.value ? "bg-ink text-bg" : "text-ink-muted hover:text-ink"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <ContentTable items={filtered} showType contentColumnLabel="Content" />
+        </div>
+      )}
+    </section>
+  );
+}
