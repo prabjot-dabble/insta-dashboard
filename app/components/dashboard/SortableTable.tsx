@@ -72,7 +72,7 @@ export function SortableTable<T>({
                 key={col.key}
                 scope="col"
                 aria-sort={sortKey === col.key ? (sortDir === "asc" ? "ascending" : "descending") : undefined}
-                className={`px-3 py-2.5 text-xs font-medium tracking-wide text-ink-muted uppercase ${
+                className={`px-4 py-3 text-xs font-medium tracking-wide text-ink-muted uppercase ${
                   col.align === "right" ? "text-right" : "text-left"
                 } ${col.sortValue ? "cursor-pointer select-none hover:text-ink" : ""}`}
                 onClick={() => handleSort(col)}
@@ -84,12 +84,15 @@ export function SortableTable<T>({
           </tr>
         </thead>
         <tbody>
-          {sorted.map((item) => (
-            <tr key={getRowKey(item)} className="border-b border-border last:border-b-0 hover:bg-surface-sunken">
+          {sorted.map((item, index) => (
+            <tr
+              key={getRowKey(item)}
+              className={`transition-colors hover:bg-ink/5 ${index % 2 === 1 ? "bg-surface-sunken" : "bg-transparent"}`}
+            >
               {columns.map((col) => (
                 <td
                   key={col.key}
-                  className={`tabular-nums px-3 py-2.5 ${col.align === "right" ? "text-right" : "text-left"}`}
+                  className={`tabular-nums px-4 py-3 ${col.align === "right" ? "text-right" : "text-left"}`}
                 >
                   {col.render(item)}
                 </td>

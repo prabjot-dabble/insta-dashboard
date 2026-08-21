@@ -80,6 +80,16 @@ export function formatDateShort(isoTimestamp: string | null | undefined): string
   return new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" }).format(date);
 }
 
+const IST_WEEKDAY = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", weekday: "short" });
+
+/** "Fri" — short weekday tag shown alongside a compact date in table rows. */
+export function formatWeekday(isoTimestamp: string | null | undefined): string {
+  if (!isoTimestamp) return EM_DASH;
+  const date = new Date(isoTimestamp);
+  if (Number.isNaN(date.getTime())) return EM_DASH;
+  return IST_WEEKDAY.format(date);
+}
+
 /** "2026-08" -> "Aug 2026", for trend chart period labels. */
 export function formatMonthLabel(period: string): string {
   const [year, month] = period.split("-").map(Number);

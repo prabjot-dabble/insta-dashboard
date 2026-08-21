@@ -1,6 +1,6 @@
 import { SortableTable, type ColumnDef } from "./SortableTable";
 import { MediaThumbnail } from "./MediaThumbnail";
-import { formatDate, formatInteger, formatPercent, truncateCaption } from "@/app/lib/format";
+import { formatDate, formatInteger, formatPercent, formatWeekday, truncateCaption } from "@/app/lib/format";
 import type { ContentItem } from "@/app/lib/types";
 
 interface ContentTableProps {
@@ -41,14 +41,25 @@ export function ContentTable({ items, showSkipRate = false, showType = false, co
           {
             key: "type",
             header: "Type",
-            render: (item) => <span className="text-xs text-ink-muted">{item.contentType}</span>,
+            render: (item) => (
+              <span className="inline-block rounded-full bg-surface-sunken px-2 py-0.5 text-[11px] font-medium tracking-wide text-ink-muted">
+                {item.contentType}
+              </span>
+            ),
           } satisfies ColumnDef<ContentItem>,
         ]
       : []),
     {
       key: "date",
       header: "Date",
-      render: (item) => <span className="text-ink-muted">{formatDate(item.timestamp)}</span>,
+      render: (item) => (
+        <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-ink-muted">
+          {formatDate(item.timestamp)}
+          <span className="rounded-full bg-surface-sunken px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-ink-faint uppercase">
+            {formatWeekday(item.timestamp)}
+          </span>
+        </span>
+      ),
       sortValue: (item) => new Date(item.timestamp).getTime(),
     },
     {
