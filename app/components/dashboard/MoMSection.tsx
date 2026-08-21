@@ -22,7 +22,9 @@ export function MoMSection({ state }: MoMSectionProps) {
 
       {state.status === "loading" && <SkeletonTable rows={10} />}
 
-      {state.status === "error" && <ErrorNotice sectionLabel="Month-on-Month" detail={state.message} />}
+      {state.status === "error" && (
+        <ErrorNotice sectionLabel="Month-on-Month" detail={state.message} isTokenError={state.isTokenError} />
+      )}
 
       {state.status === "success" && <MoMTable data={state.data} />}
     </section>

@@ -18,7 +18,9 @@ export function TrendSection({ state }: TrendSectionProps) {
 
       {state.status === "loading" && <SkeletonChartGrid count={7} />}
 
-      {state.status === "error" && <ErrorNotice sectionLabel="Three-Month Trend" detail={state.message} />}
+      {state.status === "error" && (
+        <ErrorNotice sectionLabel="Three-Month Trend" detail={state.message} isTokenError={state.isTokenError} />
+      )}
 
       {state.status === "success" && (
         <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">

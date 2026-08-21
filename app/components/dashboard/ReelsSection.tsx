@@ -26,7 +26,9 @@ export function ReelsSection({ state }: ReelsSectionProps) {
         </div>
       )}
 
-      {state.status === "error" && <ErrorNotice sectionLabel="Reels" detail={state.message} />}
+      {state.status === "error" && (
+        <ErrorNotice sectionLabel="Reels" detail={state.message} isTokenError={state.isTokenError} />
+      )}
 
       {state.status === "success" && <ReelsContent result={state.data} />}
     </section>

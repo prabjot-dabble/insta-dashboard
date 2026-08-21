@@ -142,6 +142,90 @@ describe("wrap() — cache-through behavior", () => {
   });
 });
 
+describe("wrap() — forceRefresh", () => {
+  test("forceRefresh: false (the default) honors a warm cache entry, same as omitting the argument", async () => {
+    const cache = new InstagramCache();
+    let calls = 0;
+    const compute = async () => {
+      calls += 1;
+      return calls;
+    };
+
+    await cache.wrap("key1", 5000, compute);
+    const second = await cache.wrap("key1", 5000, compute, false);
+
+    assert.equal(second, 1);
+    assert.equal(calls, 1);
+  });
+
+  test("forceRefresh: true bypasses a warm, unexpired entry and recomputes", async () => {
+    const cache = new InstagramCache();
+    let calls = 0;
+    const compute = async () => {
+      calls += 1;
+      return calls;
+    };
+
+    const first = await cache.wrap("key1", 5000, compute);
+    const second = await cache.wrap("key1", 5000, compute, true);
+
+    assert.equal(first, 1);
+    assert.equal(second, 2);
+    assert.equal(calls, 2);
+  });
+
+  test("forceRefresh: true re-caches the fresh result, so the NEXT normal call sees the new value", async () => {
+    const cache = new InstagramCache();
+    let calls = 0;
+    const compute = async () => {
+      calls += 1;
+      return calls;
+    };
+
+    await cache.wrap("key1", 5000, compute);
+    await cache.wrap("key1", 5000, compute, true);
+    const third = await cache.wrap("key1", 5000, compute); // forceRefresh: false
+
+    assert.equal(third, 2); // the forced value, not recomputed a third time
+    assert.equal(calls, 2);
+  });
+
+  test("forceRefresh: true on a cold key behaves like a normal miss — one compute call", async () => {
+    const cache = new InstagramCache();
+    let calls = 0;
+    const result = await cache.wrap(
+      "key1",
+      5000,
+      async () => {
+        calls += 1;
+        return "computed";
+      },
+      true
+    );
+    assert.equal(result, "computed");
+    assert.equal(calls, 1);
+  });
+
+  test("forceRefresh: true does not disturb in-flight coalescing — a concurrent forced and unforced call for the same key still share one compute()", async () => {
+    const cache = new InstagramCache();
+    let calls = 0;
+    const compute = async () => {
+      calls += 1;
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      return "value";
+    };
+
+    const [unforced, forced] = await Promise.all([
+      cache.wrap("key1", 5000, compute),
+      cache.wrap("key1", 5000, compute, true),
+    ]);
+
+    assert.equal(calls, 1);
+    assert.equal(unforced, "value");
+    assert.equal(forced, "value");
+  });
+});
+
 describe("invalidateAll", () => {
   test("clears every key", () => {
     const cache = new InstagramCache();

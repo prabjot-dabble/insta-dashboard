@@ -64,13 +64,23 @@ export class InstagramCache {
    * Cache-through helper: returns the cached value for `key` if present and unexpired; otherwise
    * calls `compute()`, caches the result for `ttlMs`, and returns it.
    *
+   * `forceRefresh` (default false) invalidates `key` before doing anything else, so a stale-but-
+   * unexpired entry can't short-circuit a caller that explicitly wants fresh data. It does NOT
+   * touch in-flight coalescing below: if a compute() for this key is already in progress (from a
+   * concurrent non-forced call), a forced call still joins that same in-flight promise rather than
+   * starting a second redundant one — invalidating only ever affects the STORE, never `inFlight`.
+   *
    * Concurrent calls for the SAME key that both miss the cache share the same in-flight promise
    * rather than triggering two duplicate Meta requests (request coalescing) — this matters
    * specifically because several service.ts functions (e.g. getPosts/getCarousels/getReels) can
    * be invoked together for one dashboard load and would otherwise race each other on a cold
    * cache.
    */
-  async wrap<T>(key: string, ttlMs: number, compute: () => Promise<T>): Promise<T> {
+  async wrap<T>(key: string, ttlMs: number, compute: () => Promise<T>, forceRefresh: boolean = false): Promise<T> {
+    if (forceRefresh) {
+      this.invalidate(key);
+    }
+
     const cached = this.get<T>(key);
     if (cached !== undefined) return cached;
 

@@ -69,19 +69,29 @@ export interface ApiErrorShape {
   error: string;
   metaErrorType: string | null;
   metaErrorCode: number | null;
+  /** True only for Meta error code 190 (expired/invalid access token) — lets the frontend show a
+   *  specific, actionable message instead of Meta's raw error text. False for every other error. */
+  isTokenError: boolean;
 }
 
 /** Converts any thrown error into the clean shape every API route returns — the frontend never
  *  needs to know about GraphApiError, InvalidDateRangeError, or anything Meta-specific. */
 export function toApiError(err: unknown): ApiErrorShape {
   if (err instanceof GraphApiError) {
-    return { ok: false, error: err.message, metaErrorType: err.type ?? null, metaErrorCode: err.code ?? null };
+    return {
+      ok: false,
+      error: err.message,
+      metaErrorType: err.type ?? null,
+      metaErrorCode: err.code ?? null,
+      isTokenError: err.isTokenError,
+    };
   }
   return {
     ok: false,
     error: err instanceof Error ? err.message : "Unexpected server error",
     metaErrorType: null,
     metaErrorCode: null,
+    isTokenError: false,
   };
 }
 
@@ -324,16 +334,25 @@ export interface OverviewResponse extends AccountOverviewKpis {
  * `follows`/`unfollows` come from the follows_and_unfollows breakdown instead, which is on firmer
  * footing (see summarizeFollowsAndUnfollows).
  */
-export async function getOverview(instagramBusinessId: string, range: DateRange): Promise<OverviewResponse> {
+export async function getOverview(
+  instagramBusinessId: string,
+  range: DateRange,
+  forceRefresh: boolean = false
+): Promise<OverviewResponse> {
   validateDateRange(range);
   const key = `overview:${instagramBusinessId}:${range.since}:${range.until}`;
 
-  return instagramCache.wrap(key, CACHE_TTL_MS.overview, async () => {
-    const data = await fetchAccountDataForRange(instagramBusinessId, range);
-    const kpis = buildAccountOverviewKpis(data.account, data.periodReach);
-    const { newFollows, unfollows } = summarizeFollowsAndUnfollows(data.account.followsAndUnfollows);
-    return { dateRange: range, ...kpis, follows: newFollows, unfollows };
-  });
+  return instagramCache.wrap(
+    key,
+    CACHE_TTL_MS.overview,
+    async () => {
+      const data = await fetchAccountDataForRange(instagramBusinessId, range);
+      const kpis = buildAccountOverviewKpis(data.account, data.periodReach);
+      const { newFollows, unfollows } = summarizeFollowsAndUnfollows(data.account.followsAndUnfollows);
+      return { dateRange: range, ...kpis, follows: newFollows, unfollows };
+    },
+    forceRefresh
+  );
 }
 
 // ============================================================================
@@ -420,11 +439,17 @@ async function fetchClassifiedMediaForRange(
 
 async function getClassifiedMedia(
   instagramBusinessId: string,
-  range: DateRange
+  range: DateRange,
+  forceRefresh: boolean = false
 ): Promise<PartialListResult<ContentKpi>> {
   validateDateRange(range);
   const key = `media:${instagramBusinessId}:${range.since}:${range.until}`;
-  return instagramCache.wrap(key, CACHE_TTL_MS.media, () => fetchClassifiedMediaForRange(instagramBusinessId, range));
+  return instagramCache.wrap(
+    key,
+    CACHE_TTL_MS.media,
+    () => fetchClassifiedMediaForRange(instagramBusinessId, range),
+    forceRefresh
+  );
 }
 
 function filterByContentType(
@@ -442,38 +467,51 @@ export async function getCarousels(instagramBusinessId: string, range: DateRange
   return filterByContentType(await getClassifiedMedia(instagramBusinessId, range), ["CAROUSEL"]);
 }
 
-export async function getReels(instagramBusinessId: string, range: DateRange): Promise<PartialListResult<ContentKpi>> {
-  return filterByContentType(await getClassifiedMedia(instagramBusinessId, range), ["REEL"]);
+export async function getReels(
+  instagramBusinessId: string,
+  range: DateRange,
+  forceRefresh: boolean = false
+): Promise<PartialListResult<ContentKpi>> {
+  return filterByContentType(await getClassifiedMedia(instagramBusinessId, range, forceRefresh), ["REEL"]);
 }
 
 /** Posts + Carousels together from ONE shared, cached media fetch — used by the /content route so
  *  it doesn't pay for two separate media-list fetches when it wants both content types. */
 export async function getFeedContent(
   instagramBusinessId: string,
-  range: DateRange
+  range: DateRange,
+  forceRefresh: boolean = false
 ): Promise<PartialListResult<ContentKpi>> {
-  return filterByContentType(await getClassifiedMedia(instagramBusinessId, range), ["POST", "CAROUSEL"]);
+  return filterByContentType(await getClassifiedMedia(instagramBusinessId, range, forceRefresh), ["POST", "CAROUSEL"]);
 }
 
 // ============================================================================
 // Section 9 — Stories. Currently-available only; no historical archive is possible or attempted.
 // ============================================================================
 
-export async function getStories(instagramBusinessId: string): Promise<PartialListResult<StoryKpi>> {
+export async function getStories(
+  instagramBusinessId: string,
+  forceRefresh: boolean = false
+): Promise<PartialListResult<StoryKpi>> {
   const key = `stories:${instagramBusinessId}`;
 
-  return instagramCache.wrap(key, CACHE_TTL_MS.stories, async () => {
-    const page = await fetchStories(instagramBusinessId);
+  return instagramCache.wrap(
+    key,
+    CACHE_TTL_MS.stories,
+    async () => {
+      const page = await fetchStories(instagramBusinessId);
 
-    const settled = await Promise.allSettled(
-      page.data.map(async (story) => {
-        const insights = await fetchStoryInsights(story.id);
-        return normalizeStory(story, insights);
-      })
-    );
+      const settled = await Promise.allSettled(
+        page.data.map(async (story) => {
+          const insights = await fetchStoryInsights(story.id);
+          return normalizeStory(story, insights);
+        })
+      );
 
-    return buildPartialResult(page.data, settled, buildStoryKpi, (story) => story.id);
-  });
+      return buildPartialResult(page.data, settled, buildStoryKpi, (story) => story.id);
+    },
+    forceRefresh
+  );
 }
 
 // ============================================================================
@@ -503,28 +541,36 @@ export interface TrendResponse {
  * a 28-30 day month reports an accurate number — this is a real, Meta-imposed inconsistency
  * across months in the trend, not a bug (see the Prompt 6 report, "Any remaining data limitations").
  */
-export async function getThreeMonthTrend(instagramBusinessId: string): Promise<TrendResponse> {
+export async function getThreeMonthTrend(
+  instagramBusinessId: string,
+  forceRefresh: boolean = false
+): Promise<TrendResponse> {
   const key = `trend:${instagramBusinessId}`;
 
-  return instagramCache.wrap(key, CACHE_TTL_MS.trend, async () => {
-    const months = lastNCalendarMonths(3);
-    const monthData = await Promise.all(
-      months.map(async (m) => ({ period: m.period, data: await fetchAccountDataForRange(instagramBusinessId, m.range) }))
-    );
+  return instagramCache.wrap(
+    key,
+    CACHE_TTL_MS.trend,
+    async () => {
+      const months = lastNCalendarMonths(3);
+      const monthData = await Promise.all(
+        months.map(async (m) => ({ period: m.period, data: await fetchAccountDataForRange(instagramBusinessId, m.range) }))
+      );
 
-    return {
-      periods: monthData.map((m) => m.period),
-      reach: buildTrendSeries(monthData, (d) => d.periodReach),
-      views: buildTrendSeries(monthData, (d) => d.account.metrics.views),
-      engagementRate: buildTrendSeries(monthData, engagementRateFor),
-      likes: buildTrendSeries(monthData, (d) => d.account.metrics.likes),
-      comments: buildTrendSeries(monthData, (d) => d.account.metrics.comments),
-      shares: buildTrendSeries(monthData, (d) => d.account.metrics.shares),
-      saves: buildTrendSeries(monthData, (d) => d.account.metrics.saves),
-      newFollows: buildTrendSeries(monthData, (d) => summarizeFollowsAndUnfollows(d.account.followsAndUnfollows).newFollows),
-      unfollows: buildTrendSeries(monthData, (d) => summarizeFollowsAndUnfollows(d.account.followsAndUnfollows).unfollows),
-    };
-  });
+      return {
+        periods: monthData.map((m) => m.period),
+        reach: buildTrendSeries(monthData, (d) => d.periodReach),
+        views: buildTrendSeries(monthData, (d) => d.account.metrics.views),
+        engagementRate: buildTrendSeries(monthData, engagementRateFor),
+        likes: buildTrendSeries(monthData, (d) => d.account.metrics.likes),
+        comments: buildTrendSeries(monthData, (d) => d.account.metrics.comments),
+        shares: buildTrendSeries(monthData, (d) => d.account.metrics.shares),
+        saves: buildTrendSeries(monthData, (d) => d.account.metrics.saves),
+        newFollows: buildTrendSeries(monthData, (d) => summarizeFollowsAndUnfollows(d.account.followsAndUnfollows).newFollows),
+        unfollows: buildTrendSeries(monthData, (d) => summarizeFollowsAndUnfollows(d.account.followsAndUnfollows).unfollows),
+      };
+    },
+    forceRefresh
+  );
 }
 
 // ============================================================================
@@ -560,31 +606,39 @@ function compare(current: MetricValue, previous: MetricValue): MetricComparison 
   return { current, previous, absoluteChange: absoluteChange(current, previous), percentageChange: percentageChange(current, previous) };
 }
 
-export async function getMonthOverMonth(instagramBusinessId: string): Promise<MoMResponse> {
+export async function getMonthOverMonth(
+  instagramBusinessId: string,
+  forceRefresh: boolean = false
+): Promise<MoMResponse> {
   const currentRange = thisMonth();
   const previousRange = lastMonth();
   const key = `mom:${instagramBusinessId}:${currentRange.since}`;
 
-  return instagramCache.wrap(key, CACHE_TTL_MS.mom, async () => {
-    const [current, previous] = await Promise.all([
-      fetchAccountDataForRange(instagramBusinessId, currentRange),
-      fetchAccountDataForRange(instagramBusinessId, previousRange),
-    ]);
+  return instagramCache.wrap(
+    key,
+    CACHE_TTL_MS.mom,
+    async () => {
+      const [current, previous] = await Promise.all([
+        fetchAccountDataForRange(instagramBusinessId, currentRange),
+        fetchAccountDataForRange(instagramBusinessId, previousRange),
+      ]);
 
-    return {
-      currentRange,
-      previousRange,
-      reach: compare(current.periodReach, previous.periodReach),
-      views: compare(current.account.metrics.views, previous.account.metrics.views),
-      likes: compare(current.account.metrics.likes, previous.account.metrics.likes),
-      comments: compare(current.account.metrics.comments, previous.account.metrics.comments),
-      shares: compare(current.account.metrics.shares, previous.account.metrics.shares),
-      saves: compare(current.account.metrics.saves, previous.account.metrics.saves),
-      profileViews: compare(current.account.metrics.profileViews, previous.account.metrics.profileViews),
-      websiteClicks: compare(current.account.metrics.websiteClicks, previous.account.metrics.websiteClicks),
-      accountsEngaged: compare(current.account.metrics.accountsEngaged, previous.account.metrics.accountsEngaged),
-      engagementRate: compare(engagementRateFor(current), engagementRateFor(previous)),
-      followers: compare(current.account.followersCount, previous.account.followersCount),
-    };
-  });
+      return {
+        currentRange,
+        previousRange,
+        reach: compare(current.periodReach, previous.periodReach),
+        views: compare(current.account.metrics.views, previous.account.metrics.views),
+        likes: compare(current.account.metrics.likes, previous.account.metrics.likes),
+        comments: compare(current.account.metrics.comments, previous.account.metrics.comments),
+        shares: compare(current.account.metrics.shares, previous.account.metrics.shares),
+        saves: compare(current.account.metrics.saves, previous.account.metrics.saves),
+        profileViews: compare(current.account.metrics.profileViews, previous.account.metrics.profileViews),
+        websiteClicks: compare(current.account.metrics.websiteClicks, previous.account.metrics.websiteClicks),
+        accountsEngaged: compare(current.account.metrics.accountsEngaged, previous.account.metrics.accountsEngaged),
+        engagementRate: compare(engagementRateFor(current), engagementRateFor(previous)),
+        followers: compare(current.account.followersCount, previous.account.followersCount),
+      };
+    },
+    forceRefresh
+  );
 }

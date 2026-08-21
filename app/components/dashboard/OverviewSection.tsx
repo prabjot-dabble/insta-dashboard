@@ -29,7 +29,9 @@ export function OverviewSection({ state }: OverviewSectionProps) {
         </div>
       )}
 
-      {state.status === "error" && <ErrorNotice sectionLabel="Instagram Overview" detail={state.message} />}
+      {state.status === "error" && (
+        <ErrorNotice sectionLabel="Instagram Overview" detail={state.message} isTokenError={state.isTokenError} />
+      )}
 
       {state.status === "success" && (
         <div className="space-y-10">

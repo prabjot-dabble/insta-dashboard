@@ -7,11 +7,22 @@
 
 const GRAPH_API_HOST = "https://graph.facebook.com";
 
+/** Meta's OAuthException code for an expired or otherwise invalid access token. Not a token
+ *  format/scope problem — this is specifically "the token Meta received is no longer good." */
+const TOKEN_ERROR_CODE = 190;
+
 export class GraphApiError extends Error {
   readonly status: number;
   readonly type?: string;
   readonly code?: number;
   readonly fbtraceId?: string;
+  /**
+   * True only when Meta's error code is 190 (OAuthException — expired/invalid token). Detected
+   * here, the one place that parses Meta's raw error body, purely by reading the `code` Meta
+   * already returned — this does not read, validate, or otherwise touch the token itself, and
+   * requireAccessToken()/how the token is attached to the request are unchanged.
+   */
+  readonly isTokenError: boolean;
 
   constructor(
     message: string,
@@ -24,6 +35,7 @@ export class GraphApiError extends Error {
     this.type = details?.type;
     this.code = details?.code;
     this.fbtraceId = details?.fbtraceId;
+    this.isTokenError = details?.code === TOKEN_ERROR_CODE;
   }
 }
 

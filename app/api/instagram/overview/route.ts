@@ -14,15 +14,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "META_INSTAGRAM_BUSINESS_ID is not configured" }, { status: 500 });
   }
 
+  const searchParams = new URL(request.url).searchParams;
+  const forceRefresh = searchParams.get("refresh") === "true";
+
   let range;
   try {
-    range = parseDateRangeFromSearchParams(new URL(request.url).searchParams);
+    range = parseDateRangeFromSearchParams(searchParams);
   } catch (err) {
     return NextResponse.json(toApiError(err), { status: apiErrorStatus(err) });
   }
 
   try {
-    const data = await getOverview(instagramBusinessId, range);
+    const data = await getOverview(instagramBusinessId, range, forceRefresh);
     return NextResponse.json({ ok: true, data });
   } catch (err) {
     return NextResponse.json(toApiError(err), { status: apiErrorStatus(err) });

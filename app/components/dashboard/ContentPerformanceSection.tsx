@@ -46,7 +46,16 @@ export function ContentPerformanceSection({ reelsState, feedState }: ContentPerf
 
       {loading && <SkeletonTable rows={8} />}
 
-      {!loading && bothFailed && <ErrorNotice sectionLabel="Content Performance" detail={reelsState.status === "error" ? reelsState.message : undefined} />}
+      {!loading && bothFailed && (
+        <ErrorNotice
+          sectionLabel="Content Performance"
+          detail={reelsState.status === "error" ? reelsState.message : undefined}
+          isTokenError={
+            (reelsState.status === "error" && reelsState.isTokenError) ||
+            (feedState.status === "error" && feedState.isTokenError)
+          }
+        />
+      )}
 
       {!loading && !bothFailed && combined.length === 0 && <EmptyState message="No content published in this period" />}
 

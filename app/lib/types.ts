@@ -18,6 +18,9 @@ export interface ApiError {
   error: string;
   metaErrorType: string | null;
   metaErrorCode: number | null;
+  /** True only when Meta's access token has expired or is invalid (error code 190) — lets the UI
+   *  show an actionable message instead of the raw Meta error text. */
+  isTokenError: boolean;
 }
 
 export interface ApiSuccess<T> {

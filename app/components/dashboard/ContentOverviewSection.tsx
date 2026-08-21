@@ -28,7 +28,14 @@ export function ContentOverviewSection({ reelsState, feedState }: ContentOvervie
       {loading && <SkeletonKpiRow count={3} />}
 
       {bothFailed && (
-        <ErrorNotice sectionLabel="Content Overview" detail={reelsState.status === "error" ? reelsState.message : undefined} />
+        <ErrorNotice
+          sectionLabel="Content Overview"
+          detail={reelsState.status === "error" ? reelsState.message : undefined}
+          isTokenError={
+            (reelsState.status === "error" && reelsState.isTokenError) ||
+            (feedState.status === "error" && feedState.isTokenError)
+          }
+        />
       )}
 
       {!loading && !bothFailed && (

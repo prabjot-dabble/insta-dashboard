@@ -44,7 +44,9 @@ export function StoriesSection({ state }: StoriesSectionProps) {
         </div>
       )}
 
-      {state.status === "error" && <ErrorNotice sectionLabel="Stories" detail={state.message} />}
+      {state.status === "error" && (
+        <ErrorNotice sectionLabel="Stories" detail={state.message} isTokenError={state.isTokenError} />
+      )}
 
       {state.status === "success" && <StoriesContent result={state.data} />}
     </section>

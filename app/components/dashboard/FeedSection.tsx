@@ -37,7 +37,9 @@ export function FeedSection({ state }: FeedSectionProps) {
         </div>
       )}
 
-      {state.status === "error" && <ErrorNotice sectionLabel="Feed Content" detail={state.message} />}
+      {state.status === "error" && (
+        <ErrorNotice sectionLabel="Feed Content" detail={state.message} isTokenError={state.isTokenError} />
+      )}
 
       {state.status === "success" && <FeedContent result={state.data} />}
     </section>
