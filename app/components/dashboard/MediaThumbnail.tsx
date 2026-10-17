@@ -15,6 +15,7 @@ interface MediaThumbnailProps {
  *  never breaks the surrounding card or table row. */
 export function MediaThumbnail({ src, alt, size = 96, className = "" }: MediaThumbnailProps) {
   const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const showFallback = !src || failed;
 
   return (
@@ -36,7 +37,8 @@ export function MediaThumbnail({ src, alt, size = 96, className = "" }: MediaThu
           alt={alt}
           fill
           sizes={`${size}px`}
-          className="object-cover"
+          className={`object-cover transition-opacity duration-300 ease-spring ${loaded ? "opacity-100" : "opacity-0"}`}
+          onLoad={() => setLoaded(true)}
           onError={() => setFailed(true)}
         />
       )}

@@ -22,9 +22,15 @@ export function KpiHeroRow({ items }: { items: KpiItem[] }) {
       {items.map((item) => (
         <div key={item.label} className="py-6 pr-6 sm:px-6 sm:first:pl-0 sm:last:pr-0">
           <div className="text-xs font-medium tracking-wide text-ink-muted uppercase">{item.label}</div>
-          <div className="tabular-nums mt-2 font-display text-[2.75rem] leading-none text-ink">{item.value}</div>
+          <div className="tabular-nums mt-2 font-display text-[2.75rem] leading-none tracking-[-0.02em] text-ink">
+            {item.value}
+          </div>
           {item.delta && (
-            <div className={`tabular-nums mt-2 text-sm font-medium ${deltaColor(item.direction)}`}>{item.delta}</div>
+            <div
+              className={`tabular-nums mt-2 text-sm font-medium transition-colors duration-150 ease-spring ${deltaColor(item.direction)}`}
+            >
+              {item.delta}
+            </div>
           )}
         </div>
       ))}
@@ -39,7 +45,7 @@ export function KpiSecondaryRow({ items }: { items: KpiItem[] }) {
       {items.map((item) => (
         <div key={item.label}>
           <div className="text-xs font-medium tracking-wide text-ink-muted uppercase">{item.label}</div>
-          <div className="tabular-nums mt-1 text-xl font-medium text-ink">{item.value}</div>
+          <div className="tabular-nums mt-1 text-xl font-medium tracking-[-0.01em] text-ink">{item.value}</div>
         </div>
       ))}
     </div>

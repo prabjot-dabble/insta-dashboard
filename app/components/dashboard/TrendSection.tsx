@@ -62,7 +62,10 @@ function TrendMiniChart({ label, points, formatValue }: TrendMiniChartProps) {
           return (
             <div key={point.period} className="flex h-full flex-1 flex-col items-center justify-end">
               {hasValue ? (
-                <div className="w-full bg-accent" style={{ height: barHeight }} />
+                <div
+                  className="w-full bg-accent transition-[height] duration-500 ease-spring"
+                  style={{ height: barHeight }}
+                />
               ) : (
                 <div className="flex h-6 w-full items-center justify-center border border-dashed border-border-strong">
                   <span className="text-[10px] text-ink-faint">—</span>
