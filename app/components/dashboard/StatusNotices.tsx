@@ -34,6 +34,17 @@ export function ErrorNotice({ sectionLabel, detail, isTokenError = false }: Erro
   );
 }
 
+/** Explains why some (or all) recent items aren't in the Best/Lowest cards. Renders nothing when
+ *  every item was old enough to rank. */
+export function RankingNote({ tooNewCount, total, minAgeDays, noun }: { tooNewCount: number; total: number; minAgeDays: number; noun: string }) {
+  if (tooNewCount === 0) return null;
+  const message =
+    tooNewCount === total
+      ? `${total === 1 ? `This ${noun} is` : `These ${noun}s are`} less than ${minAgeDays} days old — too new to rank as best or lowest yet.`
+      : `${tooNewCount} ${noun}${tooNewCount === 1 ? "" : "s"} from the last ${minAgeDays} days ${tooNewCount === 1 ? "isn't" : "aren't"} ranked yet, while ${tooNewCount === 1 ? "its" : "their"} numbers settle.`;
+  return <p className="text-xs text-ink-muted">{message}</p>;
+}
+
 export function EmptyState({ message = "No data available" }: { message?: string }) {
   return <div className="border border-dashed border-border-strong px-4 py-10 text-center text-sm text-ink-muted">{message}</div>;
 }

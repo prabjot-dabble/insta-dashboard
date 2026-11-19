@@ -1,10 +1,11 @@
 import { MediaThumbnail } from "./MediaThumbnail";
 import { InlineMetric } from "./Kpi";
+import { RankPill } from "./ContentCard";
 import { formatDate, formatInteger } from "@/app/lib/format";
 import type { StoryItem } from "@/app/lib/types";
 
 interface StoryCardProps {
-  label: "BEST" | "LOWEST";
+  label: "BEST" | "LOWEST" | "LIVE NOW";
   item: StoryItem;
 }
 
@@ -14,20 +15,25 @@ interface StoryCardProps {
  * here would silently imply data that doesn't exist.
  */
 export function StoryCard({ label, item }: StoryCardProps) {
-  const labelColor = label === "BEST" ? "text-accent" : "text-negative";
-
   return (
     <a
       href={item.permalink ?? undefined}
       target={item.permalink ? "_blank" : undefined}
       rel={item.permalink ? "noreferrer" : undefined}
-      className="flex gap-5 border border-border bg-surface p-5 transition-[transform,box-shadow,border-color] duration-150 ease-spring hover:-translate-y-0.5 hover:border-border-strong hover:shadow-[0_8px_24px_-16px_rgba(28,30,27,0.35)] active:translate-y-0 active:scale-[0.996]"
+      className="flex flex-col gap-4 bg-surface p-4 transition-[transform,box-shadow] duration-150 ease-spring hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-16px_rgba(28,30,27,0.35)] active:translate-y-0 active:scale-[0.996] sm:flex-row sm:items-center sm:gap-6 md:p-6"
     >
-      <MediaThumbnail src={item.thumbnailUrl ?? item.mediaUrl} alt="Story thumbnail" size={128} />
+      {/* Stories are vertical, so the thumbnail is portrait (9:16-ish), not square. */}
+      <div className="w-[88px] shrink-0 bg-surface-sunken p-1">
+        <div className="relative h-[124px] w-20 overflow-hidden">
+          <MediaThumbnail src={item.thumbnailUrl ?? item.mediaUrl} alt="Story thumbnail" size={124} className="absolute top-0 left-1/2 -translate-x-1/2" />
+        </div>
+      </div>
       <div className="min-w-0 flex-1">
-        <div className={`text-xs font-semibold tracking-wider ${labelColor}`}>{label}</div>
-        <div className="mt-1 text-xs text-ink-muted">{formatDate(item.timestamp)}</div>
-        <div className="mt-4 grid grid-cols-3 gap-x-4 gap-y-3">
+        <div className="flex items-center gap-3">
+          <RankPill label={label} />
+          <span className="tabular-nums text-[13px] text-ink-faint">{formatDate(item.timestamp)}</span>
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-x-4 gap-y-4 bg-surface-sunken p-4">
           <InlineMetric label="Views" value={formatInteger(item.views)} />
           <InlineMetric label="Reach" value={formatInteger(item.reach)} />
           <InlineMetric label="Replies" value={formatInteger(item.replies)} />

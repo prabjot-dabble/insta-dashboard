@@ -8,6 +8,11 @@ import {
   last30Days,
   last7Days,
   lastMonth,
+  lastMonthToDate,
+  daysInRange,
+  daysInPeriod,
+  firstNDaysOf,
+  previousComparableRange,
   lastNCalendarMonths,
   parseDateRangeFromSearchParams,
   thisMonth,
@@ -208,5 +213,62 @@ describe("dateRangeToUnixWindow", () => {
     const utcMidnight = Date.parse("2026-08-16T00:00:00Z") / 1000;
     assert.ok(sinceUnix < utcMidnight);
     assert.equal(utcMidnight - sinceUnix, 5.5 * 3600);
+  });
+});
+
+// ----------------------------------------------------------------------------
+// Like-for-like month-on-month and the 30-day reach window
+// ----------------------------------------------------------------------------
+describe("lastMonthToDate", () => {
+  test("covers the same days of the previous month as thisMonth does of the current one", () => {
+    assert.deepEqual(thisMonth(REF), { since: "2026-08-01", until: "2026-08-16" });
+    assert.deepEqual(lastMonthToDate(REF), { since: "2026-07-01", until: "2026-07-16" });
+  });
+
+  test("stops at the previous month's last day when it's shorter", () => {
+    const march31 = new Date("2026-03-31T10:00:00Z");
+    assert.deepEqual(lastMonthToDate(march31), { since: "2026-02-01", until: "2026-02-28" });
+  });
+
+  test("rolls back across a year boundary", () => {
+    const jan10 = new Date("2026-01-10T10:00:00Z");
+    assert.deepEqual(lastMonthToDate(jan10), { since: "2025-12-01", until: "2025-12-10" });
+  });
+});
+
+describe("day counting helpers", () => {
+  test("daysInRange counts both ends", () => {
+    assert.equal(daysInRange({ since: "2026-10-01", until: "2026-10-31" }), 31);
+    assert.equal(daysInRange({ since: "2026-11-19", until: "2026-11-19" }), 1);
+    assert.equal(daysInRange({ since: "2026-12-30", until: "2027-01-02" }), 4);
+  });
+
+  test("daysInPeriod knows month lengths, including leap February", () => {
+    assert.equal(daysInPeriod("2026-10"), 31);
+    assert.equal(daysInPeriod("2026-11"), 30);
+    assert.equal(daysInPeriod("2028-02"), 29);
+  });
+
+  test("firstNDaysOf trims a 31-day month to its first 30 days", () => {
+    assert.deepEqual(firstNDaysOf({ since: "2026-10-01", until: "2026-10-31" }, 30), { since: "2026-10-01", until: "2026-10-30" });
+    assert.deepEqual(firstNDaysOf({ since: "2026-11-01", until: "2026-11-19" }, 30), { since: "2026-11-01", until: "2026-11-19" });
+  });
+});
+
+describe("previousComparableRange", () => {
+  test("month-to-date compares against the same days of last month", () => {
+    assert.deepEqual(previousComparableRange({ since: "2026-11-01", until: "2026-11-19" }), { since: "2026-10-01", until: "2026-10-19" });
+    assert.deepEqual(previousComparableRange({ since: "2026-03-01", until: "2026-03-31" }), { since: "2026-02-01", until: "2026-02-28" });
+  });
+
+  test("a whole month compares against the whole month before", () => {
+    assert.deepEqual(previousComparableRange({ since: "2026-10-01", until: "2026-10-31" }), { since: "2026-09-01", until: "2026-09-30" });
+    assert.deepEqual(previousComparableRange({ since: "2026-01-01", until: "2026-01-31" }), { since: "2025-12-01", until: "2025-12-31" });
+  });
+
+  test("other ranges compare against the same number of days just before", () => {
+    assert.deepEqual(previousComparableRange({ since: "2026-11-19", until: "2026-11-19" }), { since: "2026-11-18", until: "2026-11-18" });
+    assert.deepEqual(previousComparableRange({ since: "2026-11-13", until: "2026-11-19" }), { since: "2026-11-06", until: "2026-11-12" });
+    assert.deepEqual(previousComparableRange({ since: "2026-10-21", until: "2026-11-19" }), { since: "2026-09-21", until: "2026-10-20" });
   });
 });

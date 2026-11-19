@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
-import { Instrument_Serif } from "next/font/google";
+import { Bodoni_Moda, Inter } from "next/font/google";
 import "./globals.css";
 
-const instrumentSerif = Instrument_Serif({
+// Bodoni Moda for headings and big KPI figures, Inter for everything else — the editorial
+// pairing from the Stitch design. Both are variable fonts, so no weight list is needed.
+const bodoni = Bodoni_Moda({
   subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
-  variable: "--font-instrument-serif",
+  variable: "--font-bodoni",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -17,7 +23,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={instrumentSerif.variable}>
+    <html lang="en" className={`${bodoni.variable} ${inter.variable}`}>
       <body className="bg-bg font-sans text-ink antialiased">{children}</body>
     </html>
   );

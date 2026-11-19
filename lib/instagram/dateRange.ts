@@ -172,6 +172,75 @@ export function lastMonth(referenceDate: Date = new Date()): DateRange {
   return { since, until };
 }
 
+/**
+ * The same stretch of days in the previous Asia/Kolkata calendar month as thisMonth() covers in
+ * the current one: the 1st through the same day-of-month as today. If the previous month is
+ * shorter (e.g. today is 31 March, previous month is February), it stops at that month's last day.
+ * Used for a like-for-like month-on-month comparison, so a half-finished current month isn't
+ * compared against a complete previous month.
+ */
+export function lastMonthToDate(referenceDate: Date = new Date()): DateRange {
+  const { y, m } = istDateParts(referenceDate);
+  const { d: todayDay } = parseDateParts(todayIst(referenceDate));
+  const prevYear = m === 1 ? y - 1 : y;
+  const prevMonth = m === 1 ? 12 : m - 1;
+  const lastDay = Math.min(todayDay, daysInMonth(prevYear, prevMonth));
+  const prefix = `${prevYear}-${String(prevMonth).padStart(2, "0")}`;
+  return { since: `${prefix}-01`, until: `${prefix}-${String(lastDay).padStart(2, "0")}` };
+}
+
+/** Number of calendar days in `range`, counting both ends. */
+export function daysInRange(range: DateRange): number {
+  validateDateRange(range);
+  const { y: y1, m: m1, d: d1 } = parseDateParts(range.since);
+  const { y: y2, m: m2, d: d2 } = parseDateParts(range.until);
+  return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86_400_000) + 1;
+}
+
+/** Total days in the calendar month a "YYYY-MM" period label names. */
+export function daysInPeriod(period: string): number {
+  const [y, m] = period.split("-").map(Number);
+  return daysInMonth(y, m);
+}
+
+/** The first `n` days of `range` (or the whole range if it's already that short). */
+export function firstNDaysOf(range: DateRange, n: number): DateRange {
+  validateDateRange(range);
+  const cappedUntil = addDays(range.since, n - 1);
+  return { since: range.since, until: cappedUntil < range.until ? cappedUntil : range.until };
+}
+
+/**
+ * The period a selected range should be compared against, so every comparison is like-for-like:
+ * - a whole calendar month (1st to its last day) → the whole month before ("Last Month");
+ * - month-to-date (1st to a day in the same month) → the same days of the previous month, clamped
+ *   to that month's length ("This Month" — see lastMonthToDate);
+ * - anything else → the same number of days immediately before ("Today" → yesterday, "Last 7
+ *   Days" → the 7 days before those, custom ranges likewise).
+ */
+export function previousComparableRange(range: DateRange): DateRange {
+  validateDateRange(range);
+  const s = parseDateParts(range.since);
+  const u = parseDateParts(range.until);
+  const sameMonth = s.y === u.y && s.m === u.m;
+
+  if (sameMonth && s.d === 1) {
+    const prevYear = s.m === 1 ? s.y - 1 : s.y;
+    const prevMonth = s.m === 1 ? 12 : s.m - 1;
+    const prevMonthDays = daysInMonth(prevYear, prevMonth);
+    const isWholeMonth = u.d === daysInMonth(u.y, u.m);
+    const lastDay = isWholeMonth ? prevMonthDays : Math.min(u.d, prevMonthDays);
+    const prefix = `${prevYear}-${String(prevMonth).padStart(2, "0")}`;
+    return { since: `${prefix}-01`, until: `${prefix}-${String(lastDay).padStart(2, "0")}` };
+  }
+
+  const length = daysInRange(range);
+  return { since: addDays(range.since, -length), until: addDays(range.since, -1) };
+}
+
+/** The longest window Meta will compute a single, de-duplicated reach figure for. */
+export const MAX_REACH_WINDOW_DAYS = MAX_CHUNK_DAYS;
+
 export interface MonthPeriod {
   /** "YYYY-MM", labeling which calendar month this range covers. */
   period: string;

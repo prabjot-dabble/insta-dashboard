@@ -18,22 +18,30 @@ interface ContentCardProps {
 /** Large visual card for a Best/Lowest Reel, Post, or Carousel — thumbnail, caption, date, and a
  *  compact metric grid. Reel-specific metrics (watch time, skip rate) only render when present. */
 export function ContentCard({ label, item }: ContentCardProps) {
-  const labelColor = label === "BEST" ? "text-accent" : "text-negative";
-
   return (
     <a
       href={item.permalink ?? undefined}
       target={item.permalink ? "_blank" : undefined}
       rel={item.permalink ? "noreferrer" : undefined}
-      className="flex gap-5 border border-border bg-surface p-5 transition-[transform,box-shadow,border-color] duration-150 ease-spring hover:-translate-y-0.5 hover:border-border-strong hover:shadow-[0_8px_24px_-16px_rgba(28,30,27,0.35)] active:translate-y-0 active:scale-[0.996]"
+      className="flex flex-col bg-surface p-4 transition-[transform,box-shadow] duration-150 ease-spring hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-16px_rgba(28,30,27,0.35)] active:translate-y-0 active:scale-[0.996] md:p-6"
     >
-      <MediaThumbnail src={item.thumbnailUrl ?? item.mediaUrl} alt={truncateCaption(item.caption, 60)} size={128} />
-      <div className="min-w-0 flex-1">
-        <div className={`text-xs font-semibold tracking-wider ${labelColor}`}>{label}</div>
-        <p className="mt-1 line-clamp-2 text-sm text-ink">{truncateCaption(item.caption, 120)}</p>
-        <div className="mt-1 text-xs text-ink-muted">{formatDate(item.timestamp)}</div>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <RankPill label={label} />
+        <span className="tabular-nums text-[13px] text-ink-faint">{formatDate(item.timestamp)}</span>
+      </div>
 
-        <div className="mt-4 grid grid-cols-4 gap-x-4 gap-y-3">
+      <div className="mb-5 flex gap-4">
+        <div className="shrink-0 bg-surface-sunken p-1">
+          <MediaThumbnail src={item.thumbnailUrl ?? item.mediaUrl} alt={truncateCaption(item.caption, 60)} size={88} />
+        </div>
+        <div className="flex min-w-0 flex-col justify-center">
+          <p className="line-clamp-3 text-sm leading-snug text-ink">{truncateCaption(item.caption, 140)}</p>
+          <span className="label-caps mt-1">{item.contentType === "CAROUSEL" ? "Carousel" : item.contentType === "REEL" ? "Reel" : "Post"}</span>
+        </div>
+      </div>
+
+      <div>
+        <div className="grid grid-cols-3 gap-x-3 gap-y-4 bg-surface-sunken p-4 sm:grid-cols-4">
           <InlineMetric label="Views" value={formatInteger(item.views)} />
           <InlineMetric label="Reach" value={formatInteger(item.reach)} />
           <InlineMetric label="Eng. Rate" value={formatPercent(item.engagementRate)} />
@@ -45,7 +53,7 @@ export function ContentCard({ label, item }: ContentCardProps) {
         </div>
 
         {item.reelMetrics && (
-          <div className="mt-3 flex gap-5 border-t border-border pt-3 text-xs text-ink-muted">
+          <div className="mt-4 flex flex-wrap justify-between gap-x-5 gap-y-1 border-t border-border pt-3 text-xs text-ink-muted">
             <span>Avg watch time {formatSecondsFromMs(item.reelMetrics.averageWatchTime)}</span>
             <span>Total watch time {formatDurationFromMs(item.reelMetrics.totalVideoViewTime)}</span>
           </div>
@@ -53,4 +61,11 @@ export function ContentCard({ label, item }: ContentCardProps) {
       </div>
     </a>
   );
+}
+
+/** Solid green for BEST, quiet grey with red text for LOWEST, plain grey for anything neutral. */
+export function RankPill({ label }: { label: string }) {
+  const style =
+    label === "BEST" ? "bg-accent text-white" : label === "LOWEST" ? "bg-surface-strong text-negative" : "bg-surface-strong text-ink-muted";
+  return <span className={`px-2 py-0.5 text-[10px] font-semibold tracking-[0.12em] uppercase ${style}`}>{label}</span>;
 }

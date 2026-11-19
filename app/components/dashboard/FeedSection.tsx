@@ -1,39 +1,26 @@
-"use client";
-
-import { useState } from "react";
 import type { FetchState } from "@/app/lib/useApiData";
 import type { ContentItem, PartialListResult } from "@/app/lib/types";
-import { pickBest, pickLowest } from "@/app/lib/ranking";
+import { bestAndLowestSettled, MIN_RANKING_AGE_DAYS, type BestAndLowest } from "@/app/lib/ranking";
 import { ContentCard } from "./ContentCard";
-import { ContentTable } from "./ContentTable";
 import { SectionHeading } from "./SectionHeading";
-import { ErrorNotice, EmptyState } from "./StatusNotices";
-import { SkeletonCard, SkeletonTable } from "./Skeletons";
+import { ErrorNotice, EmptyState, RankingNote } from "./StatusNotices";
+import { SkeletonCard } from "./Skeletons";
 
 interface FeedSectionProps {
   state: FetchState<PartialListResult<ContentItem>>;
 }
 
-type FeedFilter = "all" | "POST" | "CAROUSEL";
-
-const FILTERS: Array<{ value: FeedFilter; label: string }> = [
-  { value: "all", label: "All" },
-  { value: "POST", label: "Posts" },
-  { value: "CAROUSEL", label: "Carousels" },
-];
-
+/** Best and lowest Post and Carousel for the period. The full list of feed content lives in the
+ *  Content Performance table (section 08), so it isn't repeated here. */
 export function FeedSection({ state }: FeedSectionProps) {
   return (
-    <section id="feed" className="mx-auto max-w-7xl px-6 py-14 md:px-10">
+    <section id="feed" className="mx-auto max-w-[1360px] px-5 py-8 md:px-12 md:py-10">
       <SectionHeading number="04" title="Feed Content" />
 
       {state.status === "loading" && (
-        <div className="space-y-10">
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-            <SkeletonCard />
-            <SkeletonCard />
-          </div>
-          <SkeletonTable />
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
       )}
 
@@ -47,7 +34,6 @@ export function FeedSection({ state }: FeedSectionProps) {
 }
 
 function FeedContent({ result }: { result: PartialListResult<ContentItem> }) {
-  const [filter, setFilter] = useState<FeedFilter>("all");
   const posts = result.data.filter((i) => i.contentType === "POST");
   const carousels = result.data.filter((i) => i.contentType === "CAROUSEL");
 
@@ -55,19 +41,12 @@ function FeedContent({ result }: { result: PartialListResult<ContentItem> }) {
     return <EmptyState message="No Posts or Carousels published in this period" />;
   }
 
-  const bestPost = pickBest(posts, (i) => i.engagementRate, (i) => i.reach);
-  const lowestPost = pickLowest(posts, (i) => i.engagementRate, (i) => i.reach);
-  const bestCarousel = pickBest(carousels, (i) => i.engagementRate, (i) => i.reach);
-  const lowestCarousel = pickLowest(carousels, (i) => i.engagementRate, (i) => i.reach);
-
-  const filtered = filter === "all" ? result.data : result.data.filter((i) => i.contentType === filter);
-
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       {result.errors.length > 0 && (
         <p className="text-xs text-ink-muted">
           {result.errors.length} item{result.errors.length === 1 ? "" : "s"} could not be loaded and{" "}
-          {result.errors.length === 1 ? "is" : "are"} excluded below.
+          {result.errors.length === 1 ? "is" : "are"} left out.
         </p>
       )}
 
@@ -77,10 +56,7 @@ function FeedContent({ result }: { result: PartialListResult<ContentItem> }) {
           {posts.length === 0 ? (
             <EmptyState message="No Posts in this period" />
           ) : (
-            <div className="space-y-4">
-              {bestPost && <ContentCard label="BEST" item={bestPost} />}
-              {lowestPost && lowestPost.id !== bestPost?.id && <ContentCard label="LOWEST" item={lowestPost} />}
-            </div>
+            <RankedCards ranking={bestAndLowestSettled(posts)} total={posts.length} noun="Post" />
           )}
         </div>
         <div>
@@ -88,35 +64,32 @@ function FeedContent({ result }: { result: PartialListResult<ContentItem> }) {
           {carousels.length === 0 ? (
             <EmptyState message="No Carousels in this period" />
           ) : (
-            <div className="space-y-4">
-              {bestCarousel && <ContentCard label="BEST" item={bestCarousel} />}
-              {lowestCarousel && lowestCarousel.id !== bestCarousel?.id && <ContentCard label="LOWEST" item={lowestCarousel} />}
-            </div>
+            <RankedCards ranking={bestAndLowestSettled(carousels)} total={carousels.length} noun="Carousel" />
           )}
         </div>
       </div>
 
-      <div>
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <div className="text-xs tracking-wide text-ink-muted uppercase">Feed Content</div>
-          <div className="flex gap-1 border border-border-strong p-0.5" role="group" aria-label="Filter content type">
-            {FILTERS.map((f) => (
-              <button
-                key={f.value}
-                type="button"
-                onClick={() => setFilter(f.value)}
-                aria-pressed={filter === f.value}
-                className={`px-3 py-1 text-xs transition-colors ${
-                  filter === f.value ? "bg-ink text-bg" : "text-ink-muted hover:text-ink"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <ContentTable items={filtered} contentColumnLabel="Content" showType />
-      </div>
+      <SeeAllLink />
     </div>
+  );
+}
+
+function RankedCards({ ranking, total, noun }: { ranking: BestAndLowest<ContentItem>; total: number; noun: string }) {
+  const { best, lowest, tooNewCount } = ranking;
+  return (
+    <div className="space-y-4">
+      <RankingNote tooNewCount={tooNewCount} total={total} minAgeDays={MIN_RANKING_AGE_DAYS} noun={noun} />
+      {best && <ContentCard label="BEST" item={best} />}
+      {lowest && lowest.id !== best?.id && <ContentCard label="LOWEST" item={lowest} />}
+    </div>
+  );
+}
+
+/** Points to the one combined table instead of repeating it in every section. */
+export function SeeAllLink() {
+  return (
+    <a href="#content-performance" className="inline-block text-xs text-ink-muted underline-offset-4 hover:text-accent hover:underline">
+      See every post in Content Performance ↓
+    </a>
   );
 }

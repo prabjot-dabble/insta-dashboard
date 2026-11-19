@@ -1,5 +1,5 @@
 import type { FetchState } from "@/app/lib/useApiData";
-import type { PartialListResult, StoryItem } from "@/app/lib/types";
+import type { ItemError, PartialListResult, StoryItem } from "@/app/lib/types";
 import { formatInteger } from "@/app/lib/format";
 import { pickBest, pickLowest } from "@/app/lib/ranking";
 import { StoryCard } from "./StoryCard";
@@ -27,7 +27,7 @@ function sumAvailable(values: Array<number | null>): number | null {
 
 export function StoriesSection({ state }: StoriesSectionProps) {
   return (
-    <section id="stories" className="mx-auto max-w-7xl px-6 py-14 md:px-10">
+    <section id="stories" className="mx-auto max-w-[1360px] px-5 py-8 md:px-12 md:py-10">
       <SectionHeading
         number="05"
         title="Stories"
@@ -55,9 +55,10 @@ export function StoriesSection({ state }: StoriesSectionProps) {
 
 function StoriesContent({ result }: { result: PartialListResult<StoryItem> }) {
   const stories = result.data;
+  const hiddenNote = hiddenStoriesNote(result.errors, stories.length);
 
   if (stories.length === 0) {
-    return <EmptyState message="No Stories currently available" />;
+    return <EmptyState message={hiddenNote ?? "No Stories currently available"} />;
   }
 
   const totalViews = sumAvailable(stories.map((s) => s.views));
@@ -66,17 +67,14 @@ function StoriesContent({ result }: { result: PartialListResult<StoryItem> }) {
   const totalFollows = sumAvailable(stories.map((s) => s.follows));
   const totalProfileVisits = sumAvailable(stories.map((s) => s.profileVisits));
 
-  const best = pickBest(stories, (s) => s.reach, (s) => s.views);
-  const lowest = pickLowest(stories, (s) => s.reach, (s) => s.views);
+  // Best/Lowest only means something with at least two stories to compare.
+  const canRank = stories.length >= 2;
+  const best = canRank ? pickBest(stories, (s) => s.reach, (s) => s.views) : null;
+  const lowest = canRank ? pickLowest(stories, (s) => s.reach, (s) => s.views) : null;
 
   return (
     <div className="space-y-10">
-      {result.errors.length > 0 && (
-        <p className="text-xs text-ink-muted">
-          {result.errors.length} Stor{result.errors.length === 1 ? "y" : "ies"} could not be loaded and{" "}
-          {result.errors.length === 1 ? "is" : "are"} excluded below.
-        </p>
-      )}
+      {hiddenNote && <p className="text-xs text-ink-muted">{hiddenNote}</p>}
 
       <div>
         <div className="mb-4 text-xs tracking-wide text-ink-muted uppercase">
@@ -94,9 +92,35 @@ function StoriesContent({ result }: { result: PartialListResult<StoryItem> }) {
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        {best && <StoryCard label="BEST" item={best} />}
-        {lowest && lowest.id !== best?.id && <StoryCard label="LOWEST" item={lowest} />}
+        {canRank ? (
+          <>
+            {best && <StoryCard label="BEST" item={best} />}
+            {lowest && lowest.id !== best?.id && <StoryCard label="LOWEST" item={lowest} />}
+          </>
+        ) : (
+          <StoryCard label="LIVE NOW" item={stories[0]} />
+        )}
       </div>
     </div>
   );
+}
+
+/**
+ * Meta withholds a story's insights until enough people have viewed it (error #10, "Not enough
+ * viewers"). That's normal for a fresh story, not a failure, so it's explained as such; any other
+ * per-story failure gets a plain "couldn't be loaded".
+ */
+function hiddenStoriesNote(errors: ItemError[], shownCount: number): string | null {
+  if (errors.length === 0) return null;
+  const tooFewViewers = errors.filter((e) => /not enough viewers/i.test(e.message)).length;
+  const other = errors.length - tooFewViewers;
+  const parts: string[] = [];
+  if (tooFewViewers > 0) {
+    const more = shownCount > 0 ? " more" : "";
+    parts.push(
+      `${tooFewViewers}${more} ${tooFewViewers === 1 ? "Story is" : "Stories are"} live, but Meta hides the numbers until enough people have viewed ${tooFewViewers === 1 ? "it" : "them"}.`
+    );
+  }
+  if (other > 0) parts.push(`${other} ${other === 1 ? "Story" : "Stories"} couldn't be loaded.`);
+  return parts.join(" ");
 }
