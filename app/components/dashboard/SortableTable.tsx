@@ -63,31 +63,34 @@ export function SortableTable<T>({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[760px] border-collapse text-sm">
+    <div className="overflow-x-auto bg-surface">
+      <table className="w-full min-w-[760px] border-collapse text-[13px]">
         <thead>
-          <tr className="border-b border-border-strong">
-            {columns.map((col) => (
-              <th
-                key={col.key}
-                scope="col"
-                aria-sort={sortKey === col.key ? (sortDir === "asc" ? "ascending" : "descending") : undefined}
-                className={`px-4 py-3 text-xs font-medium tracking-wide text-ink-muted uppercase transition-colors duration-150 ease-spring ${
-                  col.align === "right" ? "text-right" : "text-left"
-                } ${col.sortValue ? "cursor-pointer select-none hover:text-ink active:text-ink" : ""}`}
-                onClick={() => handleSort(col)}
-              >
-                {col.header}
-                {sortKey === col.key && <span className="ml-1 text-ink-faint">{sortDir === "asc" ? "↑" : "↓"}</span>}
-              </th>
-            ))}
+          <tr className="border-b border-border bg-surface-sunken">
+            {columns.map((col) => {
+              const active = sortKey === col.key;
+              return (
+                <th
+                  key={col.key}
+                  scope="col"
+                  aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : undefined}
+                  className={`label-caps px-4 py-3.5 transition-colors duration-150 ease-spring ${
+                    col.align === "right" ? "text-right" : "text-left"
+                  } ${active ? "text-accent!" : ""} ${col.sortValue ? "cursor-pointer select-none hover:text-ink!" : ""}`}
+                  onClick={() => handleSort(col)}
+                >
+                  {col.header}
+                  {active && <span className="ml-1">{sortDir === "asc" ? "↑" : "↓"}</span>}
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
-          {sorted.map((item, index) => (
+          {sorted.map((item) => (
             <tr
               key={getRowKey(item)}
-              className={`transition-colors duration-150 ease-spring hover:bg-ink/5 ${index % 2 === 1 ? "bg-surface-sunken" : "bg-transparent"}`}
+              className="border-b border-border transition-colors duration-150 ease-spring last:border-b-0 hover:bg-surface-sunken"
             >
               {columns.map((col) => (
                 <td

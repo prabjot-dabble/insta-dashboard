@@ -33,11 +33,11 @@ export function Header({ dateSelection, onDateSelectionChange, onRefresh, isRefr
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-surface/85 backdrop-blur-md backdrop-saturate-150">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-5 md:px-10">
+    <header className="sticky top-0 z-40 border-b border-border bg-surface-sunken/90 backdrop-blur-md backdrop-saturate-150">
+      <div className="mx-auto flex min-h-20 max-w-[1360px] flex-wrap items-center justify-between gap-4 px-5 py-4 md:px-12">
         <div>
-          <div className="font-display text-2xl leading-none tracking-[-0.01em] text-ink">Dabble Playart</div>
-          <div className="mt-1 text-xs tracking-wide text-ink-muted uppercase">Instagram Analytics</div>
+          <div className="font-display text-2xl leading-none tracking-tight text-accent">Dabble Playart</div>
+          <div className="label-caps mt-1.5 tracking-[0.14em]">Instagram Analytics</div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">

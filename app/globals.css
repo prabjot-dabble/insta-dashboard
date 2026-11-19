@@ -1,22 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #faf9f6;
+  /* Palette from the Stitch design: warm cream page, white tiles, deep forest green, brick red. */
+  --color-bg: #fbf9f4;
   --color-surface: #ffffff;
-  --color-surface-sunken: #f3f1ec;
-  --color-ink: #1c1e1b;
-  --color-ink-muted: #6b6f68;
-  --color-ink-faint: #9a9d95;
-  --color-accent: #1f4d3a;
+  --color-surface-sunken: #f5f3ee;
+  --color-surface-strong: #eae8e3;
+  --color-ink: #1b1c19;
+  --color-ink-muted: #5f6661;
+  --color-ink-faint: #8a918b;
+  --color-accent: #023625;
+  --color-accent-soft: #1f4d3a;
   --color-accent-bright: #2f7a52;
-  --color-accent-wash: #eaf0ec;
-  --color-negative: #8c3b2e;
-  --color-negative-wash: #f5ebe8;
-  --color-border: #e3e1da;
-  --color-border-strong: #d3d0c7;
+  --color-accent-wash: #e6efe9;
+  --color-accent-tint: #a1d1b8;
+  --color-negative: #a03f32;
+  --color-negative-wash: #fbece9;
+  --color-border: #e4e2dd;
+  --color-border-strong: #c0c9c2;
 
-  --font-display: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
-  --font-sans: "Times New Roman", Times, serif;
+  --font-display: var(--font-bodoni), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
   /* Motion vocabulary, used everywhere something responds to a press, hover, or state change.
      "spring" settles like a critically-damped spring (snappy, no overshoot) — the default for
@@ -46,6 +50,16 @@ body {
    hard pop-in, so the notice reads as arriving, not appearing. */
 .notice-enter {
   animation: fade-in-up 280ms var(--ease-spring);
+}
+
+/* Small uppercase metric label used on every tile, card and table header. */
+.label-caps {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
 }
 
 /* Numeric alignment matters everywhere a figure appears — tables, KPI values, deltas. */

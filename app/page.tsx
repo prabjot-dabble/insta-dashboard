@@ -57,31 +57,33 @@ export default function DashboardPage() {
 
       <main>
         <OverviewSection state={overviewState} />
-        <div className="border-t border-border">
+        <div>
           <ContentOverviewSection reelsState={reelsState} feedState={feedState} />
         </div>
-        <div className="border-t border-border">
+        <div>
           <ReelsSection state={reelsState} />
         </div>
-        <div className="border-t border-border">
+        <div>
           <FeedSection state={feedState} />
         </div>
-        <div className="border-t border-border">
+        <div>
           <StoriesSection state={storiesState} />
         </div>
-        <div className="border-t border-border">
+        <div>
           <MoMSection state={momState} />
         </div>
-        <div className="border-t border-border">
+        <div>
           <TrendSection state={trendState} />
         </div>
-        <div className="border-t border-border">
+        <div>
           <ContentPerformanceSection reelsState={reelsState} feedState={feedState} />
         </div>
       </main>
 
-      <footer className="border-t border-border px-6 py-8 text-center text-xs text-ink-faint md:px-10">
-        Dabble Playart — Instagram Organic Analytics
+      <footer className="mt-10 border-t border-border bg-surface-sunken">
+        <div className="mx-auto max-w-[1360px] px-5 py-6 text-xs text-ink-muted md:px-12">
+          Dabble Playart — Instagram Organic Analytics
+        </div>
       </footer>
     </div>
   );

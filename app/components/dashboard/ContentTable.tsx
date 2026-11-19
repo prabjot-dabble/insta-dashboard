@@ -19,7 +19,11 @@ export function ContentTable({ items, showSkipRate = false, showType = false, co
     {
       key: "thumbnail",
       header: "",
-      render: (item) => <MediaThumbnail src={item.thumbnailUrl ?? item.mediaUrl} alt="" size={44} />,
+      render: (item) => (
+        <div className="w-fit bg-surface-sunken p-0.5">
+          <MediaThumbnail src={item.thumbnailUrl ?? item.mediaUrl} alt="" size={40} />
+        </div>
+      ),
     },
     {
       key: "content",
@@ -42,7 +46,11 @@ export function ContentTable({ items, showSkipRate = false, showType = false, co
             key: "type",
             header: "Type",
             render: (item) => (
-              <span className="inline-block rounded-full bg-surface-sunken px-2 py-0.5 text-[11px] font-medium tracking-wide text-ink-muted">
+              <span
+                className={`inline-block px-2 py-0.5 text-[10px] font-semibold tracking-[0.12em] uppercase ${
+                  item.contentType === "REEL" ? "bg-accent text-white" : item.contentType === "POST" ? "bg-surface-strong text-ink" : "bg-surface-sunken text-ink-muted"
+                }`}
+              >
                 {item.contentType}
               </span>
             ),
@@ -55,7 +63,7 @@ export function ContentTable({ items, showSkipRate = false, showType = false, co
       render: (item) => (
         <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-ink-muted">
           {formatDate(item.timestamp)}
-          <span className="rounded-full bg-surface-sunken px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-ink-faint uppercase">
+          <span className="bg-surface-sunken px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-ink-faint uppercase">
             {formatWeekday(item.timestamp)}
           </span>
         </span>
@@ -80,7 +88,7 @@ export function ContentTable({ items, showSkipRate = false, showType = false, co
       key: "engagementRate",
       header: "Eng. Rate",
       align: "right",
-      render: (item) => formatPercent(item.engagementRate),
+      render: (item) => <span className="font-semibold text-accent">{formatPercent(item.engagementRate)}</span>,
       sortValue: (item) => item.engagementRate,
     },
     {

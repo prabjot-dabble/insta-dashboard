@@ -41,8 +41,30 @@ export function ContentPerformanceSection({ reelsState, feedState }: ContentPerf
   const filtered = filter === "all" ? combined : combined.filter((item) => item.contentType === filter);
 
   return (
-    <section id="content-performance" className="mx-auto max-w-7xl px-6 py-14 md:px-10">
-      <SectionHeading number="08" title="Content Performance" />
+    <section id="content-performance" className="mx-auto max-w-[1360px] px-5 py-8 md:px-12 md:py-10">
+      <SectionHeading
+        number="08"
+        title="Content Performance"
+        action={
+          !loading && !bothFailed && combined.length > 0 ? (
+            <div className="flex w-fit gap-1 bg-surface p-1" role="group" aria-label="Filter content type">
+              {FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  type="button"
+                  onClick={() => setFilter(f.value)}
+                  aria-pressed={filter === f.value}
+                  className={`px-3 py-1 text-[11px] font-semibold tracking-[0.12em] uppercase transition-colors ${
+                    filter === f.value ? "bg-accent text-white" : "text-ink-faint hover:text-ink"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          ) : undefined
+        }
+      />
 
       {loading && <SkeletonTable rows={8} />}
 
@@ -60,26 +82,7 @@ export function ContentPerformanceSection({ reelsState, feedState }: ContentPerf
       {!loading && !bothFailed && combined.length === 0 && <EmptyState message="No content published in this period" />}
 
       {!loading && !bothFailed && combined.length > 0 && (
-        <div>
-          <div className="mb-4 flex justify-end">
-            <div className="flex gap-1 border border-border-strong p-0.5" role="group" aria-label="Filter content type">
-              {FILTERS.map((f) => (
-                <button
-                  key={f.value}
-                  type="button"
-                  onClick={() => setFilter(f.value)}
-                  aria-pressed={filter === f.value}
-                  className={`px-3 py-1 text-xs transition-colors ${
-                    filter === f.value ? "bg-ink text-bg" : "text-ink-muted hover:text-ink"
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <ContentTable items={filtered} showType contentColumnLabel="Content" />
-        </div>
+        <ContentTable items={filtered} showType={filter === "all"} showSkipRate={filter === "REEL"} contentColumnLabel="Content" />
       )}
     </section>
   );

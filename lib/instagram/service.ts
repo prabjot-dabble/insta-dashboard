@@ -52,8 +52,13 @@ import {
   InvalidDateRangeError,
   chunkDateRangeForInsights,
   dateRangeToUnixWindow,
-  lastMonth,
+  daysInPeriod,
+  daysInRange,
+  firstNDaysOf,
+  lastMonthToDate,
   lastNCalendarMonths,
+  MAX_REACH_WINDOW_DAYS,
+  previousComparableRange,
   thisMonth,
   validateDateRange,
   type DateRange,
@@ -322,10 +327,20 @@ function engagementRateFor(data: AccountRangeData): MetricValue {
 // Section 6 — Account overview.
 // ============================================================================
 
-export interface OverviewResponse extends AccountOverviewKpis {
+export interface OverviewPeriod extends AccountOverviewKpis {
   dateRange: DateRange;
   follows: MetricValue;
   unfollows: MetricValue;
+}
+
+export interface OverviewResponse extends OverviewPeriod {
+  /**
+   * The same KPIs for the comparable earlier period (see previousComparableRange), so the frontend
+   * can show change. Null only if that period couldn't be fetched — the selected period's numbers
+   * are still returned. Its followers value is the same live snapshot as the current one (Meta
+   * offers no historical follower count), so it must not be used for a followers delta.
+   */
+  previous: OverviewPeriod | null;
 }
 
 /**
@@ -340,6 +355,18 @@ export async function getOverview(
   forceRefresh: boolean = false
 ): Promise<OverviewResponse> {
   validateDateRange(range);
+  const [current, previous] = await Promise.all([
+    getOverviewPeriod(instagramBusinessId, range, forceRefresh),
+    getOverviewPeriod(instagramBusinessId, previousComparableRange(range), forceRefresh).catch(() => null),
+  ]);
+  return { ...current, previous };
+}
+
+async function getOverviewPeriod(
+  instagramBusinessId: string,
+  range: DateRange,
+  forceRefresh: boolean
+): Promise<OverviewPeriod> {
   const key = `overview:${instagramBusinessId}:${range.since}:${range.until}`;
 
   return instagramCache.wrap(
@@ -532,6 +559,14 @@ export interface TrendResponse {
    *  see summarizeFollowsAndUnfollows. There is deliberately no "followers over time" trend here. */
   newFollows: TrendPoint[];
   unfollows: TrendPoint[];
+  /**
+   * Months whose reach (and so engagement rate) covers fewer days than the month itself. Meta only
+   * computes a de-duplicated reach over windows of up to 30 days, so for a 31-day month both are
+   * measured over its first 30 days, and the window used is listed here so the UI can say so.
+   */
+  reachWindows: { period: string; range: DateRange }[];
+  /** The current month, which is still in progress — null only if no period is partial. */
+  inProgress: { period: string; daysElapsed: number; daysInMonth: number } | null;
 }
 
 /**
@@ -553,20 +588,36 @@ export async function getThreeMonthTrend(
     async () => {
       const months = lastNCalendarMonths(3);
       const monthData = await Promise.all(
-        months.map(async (m) => ({ period: m.period, data: await fetchAccountDataForRange(instagramBusinessId, m.range) }))
+        months.map(async (m) => {
+          const data = await fetchAccountDataForRange(instagramBusinessId, m.range);
+          // A 31-day month can't get one accurate reach figure (see AccountRangeData). Rather than
+          // leave a gap, measure reach — and engagement rate, which divides by it — over the
+          // month's first 30 days, using that same window's interactions so the rate stays
+          // consistent. The window is reported in reachWindows so the UI can label it.
+          const needsReachWindow = data.periodReach === null && daysInRange(m.range) > MAX_REACH_WINDOW_DAYS;
+          const reachRange = needsReachWindow ? firstNDaysOf(m.range, MAX_REACH_WINDOW_DAYS) : null;
+          const reachData = reachRange ? await fetchAccountDataForRange(instagramBusinessId, reachRange) : data;
+          return { period: m.period, data, reachData, reachRange };
+        })
       );
+
+      const current = months[months.length - 1];
+      const elapsed = daysInRange(current.range);
+      const total = daysInPeriod(current.period);
 
       return {
         periods: monthData.map((m) => m.period),
-        reach: buildTrendSeries(monthData, (d) => d.periodReach),
+        reach: monthData.map((m) => ({ period: m.period, value: m.reachData.periodReach })),
         views: buildTrendSeries(monthData, (d) => d.account.metrics.views),
-        engagementRate: buildTrendSeries(monthData, engagementRateFor),
+        engagementRate: monthData.map((m) => ({ period: m.period, value: engagementRateFor(m.reachData) })),
         likes: buildTrendSeries(monthData, (d) => d.account.metrics.likes),
         comments: buildTrendSeries(monthData, (d) => d.account.metrics.comments),
         shares: buildTrendSeries(monthData, (d) => d.account.metrics.shares),
         saves: buildTrendSeries(monthData, (d) => d.account.metrics.saves),
         newFollows: buildTrendSeries(monthData, (d) => summarizeFollowsAndUnfollows(d.account.followsAndUnfollows).newFollows),
         unfollows: buildTrendSeries(monthData, (d) => summarizeFollowsAndUnfollows(d.account.followsAndUnfollows).unfollows),
+        reachWindows: monthData.flatMap((m) => (m.reachRange ? [{ period: m.period, range: m.reachRange }] : [])),
+        inProgress: elapsed < total ? { period: current.period, daysElapsed: elapsed, daysInMonth: total } : null,
       };
     },
     forceRefresh
@@ -574,9 +625,10 @@ export async function getThreeMonthTrend(
 }
 
 // ============================================================================
-// Section 11 — Month-over-month. Current calendar month is PARTIAL (1st through today); previous
-// is COMPLETE. That asymmetry is inherent to "current vs previous calendar month" and is not
-// hidden — both dateRanges are included in the response so the frontend can represent it honestly.
+// Section 11 — Month-over-month, like-for-like. The current calendar month is partial (1st through
+// today), so it's compared against the SAME days of the previous month (1st through the same
+// day-of-month, see lastMonthToDate) — not the whole previous month, which made every metric look
+// like it had collapsed mid-month. Both dateRanges are included in the response for labelling.
 // ============================================================================
 
 export interface MetricComparison {
@@ -611,8 +663,8 @@ export async function getMonthOverMonth(
   forceRefresh: boolean = false
 ): Promise<MoMResponse> {
   const currentRange = thisMonth();
-  const previousRange = lastMonth();
-  const key = `mom:${instagramBusinessId}:${currentRange.since}`;
+  const previousRange = lastMonthToDate();
+  const key = `mom:${instagramBusinessId}:${currentRange.since}:${currentRange.until}`;
 
   return instagramCache.wrap(
     key,

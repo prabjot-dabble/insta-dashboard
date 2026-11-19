@@ -31,7 +31,13 @@ export interface ApiSuccess<T> {
 export type ApiResult<T> = ApiSuccess<T> | ApiError;
 
 // ---- /api/instagram/overview ----
-export interface OverviewData {
+export interface OverviewData extends OverviewPeriod {
+  /** Same KPIs for the comparable earlier period; null if it couldn't be fetched. Its followers
+   *  value is today's snapshot, not a historical count — never use it for a followers delta. */
+  previous: OverviewPeriod | null;
+}
+
+export interface OverviewPeriod {
   dateRange: DateRange;
   followers: MetricValue;
   reach: MetricValue;
@@ -121,6 +127,10 @@ export interface TrendData {
   saves: TrendPoint[];
   newFollows: TrendPoint[];
   unfollows: TrendPoint[];
+  /** Months whose reach and engagement rate cover fewer days than the month (Meta's 30-day cap). */
+  reachWindows: { period: string; range: DateRange }[];
+  /** The current, still-running month — its bars are partial. */
+  inProgress: { period: string; daysElapsed: number; daysInMonth: number } | null;
 }
 
 // ---- /api/instagram/mom ----

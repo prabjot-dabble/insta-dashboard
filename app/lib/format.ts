@@ -80,7 +80,16 @@ export function formatDateShort(isoTimestamp: string | null | undefined): string
   return new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" }).format(date);
 }
 
-const IST_WEEKDAY = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", weekday: "short" });
+/** "1–19 Nov" for a range inside one month, else "28 Oct – 3 Nov". Takes "YYYY-MM-DD" dates. */
+export function formatDayRange(range: { since: string; until: string }): string {
+  if (range.since === range.until) return formatDateShort(range.since);
+  if (range.since.slice(0, 7) === range.until.slice(0, 7)) {
+    return `${Number(range.since.slice(8, 10))}–${formatDateShort(range.until)}`;
+  }
+  return `${formatDateShort(range.since)} – ${formatDateShort(range.until)}`;
+}
+
+const IST_WEEKDAY =new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", weekday: "short" });
 
 /** "Fri" — short weekday tag shown alongside a compact date in table rows. */
 export function formatWeekday(isoTimestamp: string | null | undefined): string {

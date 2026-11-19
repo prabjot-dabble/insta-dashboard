@@ -1,9 +1,8 @@
 // GET /api/instagram/mom
 //
-// Fixed current-calendar-month vs previous-calendar-month comparison (see
-// lib/instagram/service.ts#getMonthOverMonth). The current month is partial (1st through today) —
-// currentRange/previousRange are included in the response so the frontend can represent that
-// honestly rather than implying a like-for-like comparison.
+// Current month to date vs the same days of the previous month (see
+// lib/instagram/service.ts#getMonthOverMonth). currentRange/previousRange are included in the
+// response so the frontend can label exactly which days are being compared.
 
 import { NextRequest, NextResponse } from "next/server";
 import { apiErrorStatus, getMonthOverMonth, toApiError } from "@/lib/instagram/service";
