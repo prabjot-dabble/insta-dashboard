@@ -14,7 +14,7 @@ interface ReelsSectionProps {
 export function ReelsSection({ state }: ReelsSectionProps) {
   return (
     <section id="reels" className="mx-auto max-w-[1360px] px-5 py-8 md:px-12 md:py-10">
-      <SectionHeading number="03" title="Reels Performance" />
+      <SectionHeading number="04" title="Reels Performance" />
 
       {state.status === "loading" && (
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">

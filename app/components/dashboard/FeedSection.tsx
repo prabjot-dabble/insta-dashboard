@@ -11,11 +11,11 @@ interface FeedSectionProps {
 }
 
 /** Best and lowest Post and Carousel for the period. The full list of feed content lives in the
- *  Content Performance table (section 08), so it isn't repeated here. */
+ *  Content Performance table (section 12), so it isn't repeated here. */
 export function FeedSection({ state }: FeedSectionProps) {
   return (
     <section id="feed" className="mx-auto max-w-[1360px] px-5 py-8 md:px-12 md:py-10">
-      <SectionHeading number="04" title="Feed Content" />
+      <SectionHeading number="05" title="Feed Content" />
 
       {state.status === "loading" && (
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">

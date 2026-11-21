@@ -213,7 +213,9 @@ export type FeedMediaInsightMetric =
   | "comments"
   | "shares"
   | "total_interactions"
-  | "views";
+  | "views"
+  | "follows"
+  | "profile_visits";
 
 const REEL_INSIGHT_METRICS: ReelInsightMetric[] = [
   "reach",
@@ -228,6 +230,8 @@ const REEL_INSIGHT_METRICS: ReelInsightMetric[] = [
   "reels_skip_rate",
 ];
 
+// follows + profile_visits verified to combine with the other seven against a real single-image
+// post and a real carousel (Nov 2026). Meta rejects both for Reels.
 const FEED_MEDIA_INSIGHT_METRICS: FeedMediaInsightMetric[] = [
   "reach",
   "saved",
@@ -236,6 +240,8 @@ const FEED_MEDIA_INSIGHT_METRICS: FeedMediaInsightMetric[] = [
   "shares",
   "total_interactions",
   "views",
+  "follows",
+  "profile_visits",
 ];
 
 /**
@@ -296,5 +302,191 @@ export async function getStories(instagramBusinessId: string): Promise<Instagram
 export async function getStoryInsights(storyId: string): Promise<InstagramInsightsResponse> {
   return graphGet<InstagramInsightsResponse>(`${storyId}/insights`, {
     metric: "reach,replies,follows,profile_visits,navigation,views",
+  });
+}
+
+// ============================================================================
+// Additional free insights (all verified against the real Dabble account, v25.0, Nov 2026).
+// None of these cost anything; the only limit is Meta's per-hour rate cap.
+// ============================================================================
+
+export type DemographicBreakdown = "age" | "gender" | "city" | "country";
+
+/**
+ * GET /{ig-user-id}/insights?metric=follower_demographics — lifetime snapshot of who follows the
+ * account. Verified for all four breakdowns; one breakdown per request (Meta returns a single
+ * breakdown block per call).
+ */
+export async function getFollowerDemographics(
+  instagramBusinessId: string,
+  breakdown: DemographicBreakdown
+): Promise<InstagramInsightsResponse> {
+  return graphGet<InstagramInsightsResponse>(`${instagramBusinessId}/insights`, {
+    metric: "follower_demographics",
+    period: "lifetime",
+    metric_type: "total_value",
+    breakdown,
+  });
+}
+
+/**
+ * Who actually engaged this month. Only `this_month` / `this_week` timeframes exist from v20 on —
+ * `last_30_days` is rejected with error #100 (verified).
+ */
+export async function getEngagedAudienceDemographics(
+  instagramBusinessId: string,
+  breakdown: DemographicBreakdown
+): Promise<InstagramInsightsResponse> {
+  return graphGet<InstagramInsightsResponse>(`${instagramBusinessId}/insights`, {
+    metric: "engaged_audience_demographics",
+    period: "lifetime",
+    metric_type: "total_value",
+    breakdown,
+    timeframe: "this_month",
+  });
+}
+
+/**
+ * Hourly count of followers online, one 24-hour block per day for (up to) the last 30 days.
+ * Each block starts at its `end_time`, which Meta anchors to midnight US Pacific time (07:00 or
+ * 08:00 UTC depending on daylight saving — verified), and hour keys "0".."23" count forward from
+ * that instant. Converting to IST therefore has to go through the real end_time, never a fixed
+ * offset.
+ */
+export async function getOnlineFollowers(
+  instagramBusinessId: string,
+  sinceUnix: number,
+  untilUnix: number
+): Promise<InstagramInsightsResponse> {
+  assertWithinInsightsWindow(sinceUnix, untilUnix);
+  return graphGet<InstagramInsightsResponse>(`${instagramBusinessId}/insights`, {
+    metric: "online_followers",
+    period: "lifetime",
+    since: String(sinceUnix),
+    until: String(untilUnix),
+  });
+}
+
+/**
+ * reach, views, total_interactions and likes, each split by where it happened
+ * (media_product_type: AD, REEL, POST, CAROUSEL_CONTAINER, STORY, ...). Verified as one combined
+ * request. This is what separates paid (AD) from organic activity — the account totals elsewhere
+ * include ads.
+ */
+export async function getActivityBySurface(
+  instagramBusinessId: string,
+  sinceUnix: number,
+  untilUnix: number
+): Promise<InstagramInsightsResponse> {
+  assertWithinInsightsWindow(sinceUnix, untilUnix);
+  return graphGet<InstagramInsightsResponse>(`${instagramBusinessId}/insights`, {
+    metric: "reach,views,total_interactions,likes",
+    period: "day",
+    metric_type: "total_value",
+    breakdown: "media_product_type",
+    since: String(sinceUnix),
+    until: String(untilUnix),
+  });
+}
+
+/** reach and views split into FOLLOWER / NON_FOLLOWER (and a small UNKNOWN). */
+export async function getActivityByFollowType(
+  instagramBusinessId: string,
+  sinceUnix: number,
+  untilUnix: number
+): Promise<InstagramInsightsResponse> {
+  assertWithinInsightsWindow(sinceUnix, untilUnix);
+  return graphGet<InstagramInsightsResponse>(`${instagramBusinessId}/insights`, {
+    metric: "reach,views",
+    period: "day",
+    metric_type: "total_value",
+    breakdown: "follow_type",
+    since: String(sinceUnix),
+    until: String(untilUnix),
+  });
+}
+
+/** Daily reach and follower_count (time series). follower_count only covers the last 30 days. */
+export async function getDailyReachAndFollowers(
+  instagramBusinessId: string,
+  sinceUnix: number,
+  untilUnix: number
+): Promise<InstagramInsightsResponse> {
+  assertWithinInsightsWindow(sinceUnix, untilUnix);
+  return graphGet<InstagramInsightsResponse>(`${instagramBusinessId}/insights`, {
+    metric: "reach,follower_count",
+    period: "day",
+    metric_type: "time_series",
+    since: String(sinceUnix),
+    until: String(untilUnix),
+  });
+}
+
+/** Story taps: tap_forward, tap_back, tap_exit, swipe_forward (verified). */
+export async function getStoryNavigationBreakdown(storyId: string): Promise<InstagramInsightsResponse> {
+  return graphGet<InstagramInsightsResponse>(`${storyId}/insights`, {
+    metric: "navigation",
+    breakdown: "story_navigation_action_type",
+  });
+}
+
+export interface InstagramComment {
+  id: string;
+  text?: string;
+  timestamp: string;
+  like_count?: number;
+  /** Replies on the comment, including the account's own. Commenter usernames are NOT returned
+   *  for this token (verified), so none are requested or shown. */
+  replies?: { data: Array<{ id: string; timestamp?: string }> };
+}
+
+export interface InstagramCommentsPage {
+  data: InstagramComment[];
+  paging?: InstagramPaging;
+}
+
+/** Top-level comments on one post (newest first), with reply ids so "answered" can be derived. */
+export async function getMediaComments(mediaId: string, limit = 50): Promise<InstagramCommentsPage> {
+  return graphGet<InstagramCommentsPage>(`${mediaId}/comments`, {
+    fields: "id,text,timestamp,like_count,replies{id,timestamp}",
+    limit: String(Math.min(limit, 50)),
+  });
+}
+
+export interface TokenDebugInfo {
+  data: {
+    is_valid: boolean;
+    /** Unix seconds; 0 means the token never expires (e.g. a system-user token). */
+    expires_at?: number;
+    data_access_expires_at?: number;
+  };
+}
+
+/** Lets the token inspect itself — no app secret needed (verified with this account's token). */
+export async function debugOwnToken(): Promise<TokenDebugInfo> {
+  return graphGet<TokenDebugInfo>("debug_token", { input_token: process.env.META_ACCESS_TOKEN ?? "" });
+}
+
+export interface BusinessDiscoveryResponse {
+  business_discovery?: {
+    username?: string;
+    name?: string;
+    followers_count?: number;
+    media_count?: number;
+    profile_picture_url?: string;
+    media?: { data: Array<{ id: string; like_count?: number; comments_count?: number; timestamp: string; media_product_type?: string }> };
+  };
+}
+
+/**
+ * Public stats for another Instagram business/creator account (verified against our own
+ * username). Fails for personal accounts. `username` is validated by the caller.
+ */
+export async function getBusinessDiscovery(
+  instagramBusinessId: string,
+  username: string
+): Promise<BusinessDiscoveryResponse> {
+  return graphGet<BusinessDiscoveryResponse>(instagramBusinessId, {
+    fields: `business_discovery.username(${username}){username,name,followers_count,media_count,profile_picture_url,media.limit(24){like_count,comments_count,timestamp,media_product_type}}`,
   });
 }

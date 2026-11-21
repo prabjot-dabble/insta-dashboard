@@ -18,7 +18,7 @@ interface Row {
 export function MoMSection({ state }: MoMSectionProps) {
   return (
     <section id="mom" className="mx-auto max-w-[1360px] px-5 py-8 md:px-12 md:py-10">
-      <SectionHeading number="06" title="Month-on-Month" />
+      <SectionHeading number="10" title="Month-on-Month" />
 
       {state.status === "loading" && <SkeletonTable rows={10} />}
 

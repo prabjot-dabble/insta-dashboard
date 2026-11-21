@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { ApiResult } from "./types";
 
 export type FetchState<T> =
@@ -46,6 +47,7 @@ export function useApiData<T>(url: string | null, refreshKey: number, onSettled?
   const [resolved, setResolved] = useState<{ key: string; result: Resolved<T> } | null>(null);
   const requestId = useRef(0);
   const prevRefreshKeyRef = useRef(refreshKey);
+  const router = useRouter();
 
   useEffect(() => {
     if (!url) return;
@@ -57,6 +59,12 @@ export function useApiData<T>(url: string | null, refreshKey: number, onSettled?
 
     fetch(fetchUrl)
       .then(async (response) => {
+        // Session expired or was revoked while the page was open: go back to sign-in rather than
+        // showing every section as broken.
+        if (response.status === 401) {
+          router.replace(`/login?error=expired&next=${encodeURIComponent(window.location.pathname)}`);
+          return;
+        }
         const body = (await response.json()) as ApiResult<T>;
         if (thisRequest !== requestId.current) return;
         setResolved({
@@ -83,7 +91,7 @@ export function useApiData<T>(url: string | null, refreshKey: number, onSettled?
     // Deliberately keyed on url/refreshKey only — requestKey is derived from them, and onSettled
     // is read fresh from the closure each run without needing to retrigger the fetch itself.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, refreshKey]);
+  }, [url, refreshKey, router]);
 
   if (!resolved || resolved.key !== requestKey) {
     return { status: "loading" };

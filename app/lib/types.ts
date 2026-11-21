@@ -81,6 +81,10 @@ export interface ContentItem {
   saved: MetricValue;
   totalInteractions: MetricValue;
   engagementRate: MetricValue;
+  /** Follows and profile visits from this post — feed posts/carousels only (null for Reels;
+   *  Meta doesn't offer them there). */
+  follows: MetricValue;
+  profileVisits: MetricValue;
   reelMetrics: ReelMetrics | null;
 }
 
@@ -108,6 +112,110 @@ export interface StoryItem {
   follows: MetricValue;
   profileVisits: MetricValue;
   navigation: MetricValue;
+  taps: StoryTaps | null;
+}
+
+export interface StoryTaps {
+  forward: number;
+  back: number;
+  exit: number;
+  nextStory: number;
+}
+
+/** A story saved by the dashboard's local archive after it expired on Instagram. */
+export interface ArchivedStory {
+  id: string;
+  timestamp: string;
+  permalink: string | null;
+  views: MetricValue;
+  reach: MetricValue;
+  replies: MetricValue;
+  follows: MetricValue;
+  profileVisits: MetricValue;
+  navigation: MetricValue;
+  taps: StoryTaps | null;
+  lastSeenAt: string;
+}
+
+export interface StoriesData extends PartialListResult<StoryItem> {
+  /** Expired stories from the last 30 days that the dashboard saved while they were live. */
+  history: ArchivedStory[];
+}
+
+// ---- /api/instagram/audience ----
+export interface LabelValue {
+  label: string;
+  value: number;
+}
+
+export interface AudienceData {
+  followers: { age: LabelValue[]; gender: LabelValue[]; cities: LabelValue[]; countries: LabelValue[] };
+  engagedThisMonth: { age: LabelValue[]; gender: LabelValue[]; cities: LabelValue[] } | null;
+  /** [weekday 0=Mon][IST hour 0–23] average followers online. */
+  onlineHeatmap: number[][];
+  peakHours: number[];
+}
+
+// ---- /api/instagram/discovery ----
+export interface SurfaceSplit {
+  total: MetricValue;
+  bySurface: LabelValue[];
+  adShare: number | null;
+}
+
+export interface DailyPoint {
+  date: string;
+  value: number;
+}
+
+export interface DiscoveryData {
+  dateRange: DateRange;
+  reach: SurfaceSplit;
+  views: SurfaceSplit;
+  interactions: SurfaceSplit;
+  reachByFollow: LabelValue[] | null;
+  viewsByFollow: LabelValue[];
+  dailyReach: DailyPoint[];
+  dailyFollowers: DailyPoint[];
+}
+
+// ---- /api/instagram/comments ----
+export interface CommentsData {
+  postsChecked: number;
+  totalComments: number;
+  answered: number;
+  answeredRate: number | null;
+  questions: number;
+  topWords: LabelValue[];
+  unanswered: Array<{ id: string; text: string; timestamp: string; postCaption: string | null; permalink: string | null; isQuestion: boolean }>;
+}
+
+// ---- /api/instagram/token ----
+export interface TokenStatus {
+  isValid: boolean;
+  expiresAt: string | null;
+  daysLeft: number | null;
+  dataAccessExpiresAt: string | null;
+}
+
+// ---- /api/instagram/competitors ----
+export interface CompetitorStats {
+  username: string;
+  name: string | null;
+  isSelf: boolean;
+  followers: MetricValue;
+  totalPosts: MetricValue;
+  recentPosts: number;
+  avgLikes: MetricValue;
+  avgComments: MetricValue;
+  engagementRate: MetricValue;
+  postsPerWeek: MetricValue;
+  error: string | null;
+}
+
+export interface CompetitorsData {
+  configured: boolean;
+  accounts: CompetitorStats[];
 }
 
 // ---- /api/instagram/trends ----

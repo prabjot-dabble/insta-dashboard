@@ -43,3 +43,6 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# local story archive written by the dashboard (lib/instagram/storyHistory.ts)
+.data/

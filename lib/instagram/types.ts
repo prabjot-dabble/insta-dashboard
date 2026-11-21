@@ -191,6 +191,11 @@ export interface InstagramMediaMetrics {
   shares: MetricValue;
   saved: MetricValue;
   totalInteractions: MetricValue;
+  /** Accounts that followed from this post. Feed posts/carousels only — Meta rejects this metric
+   *  for Reels (#100, verified), so it's always null for a Reel. */
+  follows: MetricValue;
+  /** Profile visits from this post. Feed posts/carousels only, same as follows. */
+  profileVisits: MetricValue;
 }
 
 export interface InstagramMediaBaseNormalized {

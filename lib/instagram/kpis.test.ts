@@ -47,6 +47,8 @@ import type {
 
 function mediaMetrics(overrides: Partial<InstagramMediaMetrics> = {}): InstagramMediaMetrics {
   return {
+    follows: null,
+    profileVisits: null,
     reach: null,
     views: null,
     likes: null,

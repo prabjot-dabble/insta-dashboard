@@ -25,7 +25,7 @@ export function ContentOverviewSection({ reelsState, feedState }: ContentOvervie
 
   return (
     <section id="content-overview" className="mx-auto max-w-[1360px] px-5 py-8 md:px-12 md:py-10">
-      <SectionHeading number="02" title="Content Overview" />
+      <SectionHeading number="03" title="Content Overview" />
 
       {loading && <SkeletonKpiRow count={4} />}
 

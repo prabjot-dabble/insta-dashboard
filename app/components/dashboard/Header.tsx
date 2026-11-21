@@ -11,9 +11,11 @@ interface HeaderProps {
   onRefresh: () => void;
   isRefreshing: boolean;
   lastUpdated: Date | null;
+  /** The signed-in person, once /api/auth/me has answered. */
+  user?: { email: string; name: string | null } | null;
 }
 
-export function Header({ dateSelection, onDateSelectionChange, onRefresh, isRefreshing, lastUpdated }: HeaderProps) {
+export function Header({ dateSelection, onDateSelectionChange, onRefresh, isRefreshing, lastUpdated, user }: HeaderProps) {
   const [customSince, setCustomSince] = useState(dateSelection.type === "custom" ? dateSelection.since : "");
   const [customUntil, setCustomUntil] = useState(dateSelection.type === "custom" ? dateSelection.until : "");
   const isCustom = dateSelection.type === "custom";
@@ -103,6 +105,23 @@ export function Header({ dateSelection, onDateSelectionChange, onRefresh, isRefr
           <div className="text-xs whitespace-nowrap text-ink-muted">
             Updated {isRefreshing ? "…" : formatRelativeTime(lastUpdated)}
           </div>
+
+          {user && (
+            <div className="flex items-center gap-3 border-l border-border pl-3">
+              <span className="hidden max-w-[180px] truncate text-xs text-ink-muted md:inline" title={user.email}>
+                {user.name ?? user.email}
+              </span>
+              {/* A real form POST, so signing out works even if page scripts fail. */}
+              <form action="/api/auth/logout" method="post">
+                <button
+                  type="submit"
+                  className="border border-border-strong bg-surface px-3 py-2 text-sm text-ink transition-[border-color,transform] duration-150 ease-spring hover:border-negative hover:text-negative active:scale-[0.96]"
+                >
+                  Sign out
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       </div>
     </header>
