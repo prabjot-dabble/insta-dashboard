@@ -60,7 +60,12 @@ function OverviewContent({ data }: { data: OverviewData }) {
     <div className="space-y-10">
       {prev && (
         <p className="-mt-4 text-xs text-ink-muted">
-          {formatDayRange(data.dateRange)}, compared with {formatDayRange(prev.dateRange)}.
+          {formatDayRange(data.dateRange)}, compared with {formatDayRange(prev.dateRange)}. Totals include promoted (ad)
+          activity. See{" "}
+          <a href="#discovery" className="underline underline-offset-2 hover:text-accent">
+            Reach &amp; Discovery
+          </a>{" "}
+          for organic only.
         </p>
       )}
       {isTodayOnly && (

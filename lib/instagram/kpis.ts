@@ -335,6 +335,16 @@ export interface StoryKpi {
   follows: MetricValue;
   profileVisits: MetricValue;
   navigation: MetricValue;
+  /** Where viewers went: tapped forward/back, exited, or swiped to the next account's story.
+   *  From a separate navigation-breakdown call; null when that call wasn't made or failed. */
+  taps: StoryTaps | null;
+}
+
+export interface StoryTaps {
+  forward: number;
+  back: number;
+  exit: number;
+  nextStory: number;
 }
 
 /**
@@ -347,7 +357,7 @@ export interface StoryKpi {
  */
 export function buildStoryKpi(story: InstagramStoryNormalized): StoryKpi {
   const { id, timestamp, permalink, thumbnailUrl, mediaUrl, metrics } = story;
-  return { id, timestamp, permalink, thumbnailUrl, mediaUrl, ...metrics };
+  return { id, timestamp, permalink, thumbnailUrl, mediaUrl, ...metrics, taps: null };
 }
 
 export function buildPostsPerformance(items: readonly InstagramMediaNormalized[]): ContentKpi[] {

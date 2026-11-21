@@ -233,6 +233,8 @@ function normalizeMediaMetrics(insights: InstagramInsight[] | undefined): Instag
     shares: extractLifetimeValue(insights, "shares"),
     saved: extractLifetimeValue(insights, "saved"),
     totalInteractions: extractLifetimeValue(insights, "total_interactions"),
+    follows: extractLifetimeValue(insights, "follows"),
+    profileVisits: extractLifetimeValue(insights, "profile_visits"),
   };
 }
 

@@ -43,7 +43,7 @@ export function ContentPerformanceSection({ reelsState, feedState }: ContentPerf
   return (
     <section id="content-performance" className="mx-auto max-w-[1360px] px-5 py-8 md:px-12 md:py-10">
       <SectionHeading
-        number="08"
+        number="12"
         title="Content Performance"
         action={
           !loading && !bothFailed && combined.length > 0 ? (

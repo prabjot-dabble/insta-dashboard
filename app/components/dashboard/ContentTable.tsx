@@ -119,6 +119,21 @@ export function ContentTable({ items, showSkipRate = false, showType = false, co
       render: (item) => formatInteger(item.saved),
       sortValue: (item) => item.saved,
     },
+    // Follows / profile visits exist for feed posts only — Reels show "—" (Meta doesn't offer them).
+    {
+      key: "follows",
+      header: "Follows",
+      align: "right",
+      render: (item) => formatInteger(item.follows),
+      sortValue: (item) => item.follows,
+    },
+    {
+      key: "profileVisits",
+      header: "Profile Visits",
+      align: "right",
+      render: (item) => formatInteger(item.profileVisits),
+      sortValue: (item) => item.profileVisits,
+    },
     ...(showSkipRate
       ? [
           {

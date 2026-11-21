@@ -50,6 +50,8 @@ export function ContentCard({ label, item }: ContentCardProps) {
           <InlineMetric label="Shares" value={formatInteger(item.shares)} />
           <InlineMetric label="Saves" value={formatInteger(item.saved)} />
           {item.reelMetrics && <InlineMetric label="Skip Rate" value={formatPercent(item.reelMetrics.skipRate, 1)} />}
+          {item.follows !== null && <InlineMetric label="New Follows" value={formatInteger(item.follows)} />}
+          {item.profileVisits !== null && <InlineMetric label="Profile Visits" value={formatInteger(item.profileVisits)} />}
         </div>
 
         {item.reelMetrics && (

@@ -18,7 +18,7 @@ const IN_PROGRESS_FILL =
 export function TrendSection({ state }: TrendSectionProps) {
   return (
     <section id="trends" className="mx-auto max-w-[1360px] px-5 py-8 md:px-12 md:py-10">
-      <SectionHeading number="07" title="Three-Month Trend" />
+      <SectionHeading number="11" title="Three-Month Trend" />
 
       {state.status === "loading" && <SkeletonChartGrid count={7} />}
 

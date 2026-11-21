@@ -25,6 +25,7 @@ import {
   getReelInsights,
   getStories as fetchStories,
   getStoryInsights as fetchStoryInsights,
+  getStoryNavigationBreakdown,
 } from "./endpoints.ts";
 import {
   classifyContentType,
@@ -45,6 +46,7 @@ import {
   type AccountOverviewKpis,
   type ContentKpi,
   type StoryKpi,
+  type StoryTaps,
   type TrendPoint,
 } from "./kpis.ts";
 import { instagramCache, CACHE_TTL_MS } from "./cache.ts";
@@ -63,7 +65,7 @@ import {
   validateDateRange,
   type DateRange,
 } from "./dateRange.ts";
-import type { InstagramAccountNormalized, InstagramBreakdownMetric, InstagramMedia, MetricValue } from "./types.ts";
+import type { InstagramAccountNormalized, InstagramBreakdownMetric, InstagramInsightsResponse, InstagramMedia, MetricValue } from "./types.ts";
 
 // ============================================================================
 // Errors — pure, directly testable without touching Meta.
@@ -530,15 +532,33 @@ export async function getStories(
 
       const settled = await Promise.allSettled(
         page.data.map(async (story) => {
-          const insights = await fetchStoryInsights(story.id);
-          return normalizeStory(story, insights);
+          // The tap breakdown is a separate call; if it fails the story still shows, without it.
+          const [insights, navigation] = await Promise.all([
+            fetchStoryInsights(story.id),
+            getStoryNavigationBreakdown(story.id).catch(() => undefined),
+          ]);
+          return { normalized: normalizeStory(story, insights), taps: storyTapsFrom(navigation) };
         })
       );
 
-      return buildPartialResult(page.data, settled, buildStoryKpi, (story) => story.id);
+      return buildPartialResult(
+        page.data,
+        settled,
+        ({ normalized, taps }) => ({ ...buildStoryKpi(normalized), taps }),
+        (story) => story.id
+      );
     },
     forceRefresh
   );
+}
+
+/** navigation broken down by story_navigation_action_type (verified: tap_forward, tap_back,
+ *  tap_exit, swipe_forward). Null when the breakdown wasn't returned. */
+export function storyTapsFrom(response: InstagramInsightsResponse | undefined): StoryTaps | null {
+  const results = response?.data?.[0]?.total_value?.breakdowns?.[0]?.results;
+  if (!Array.isArray(results)) return null;
+  const get = (key: string) => results.find((r) => r.dimension_values?.[0] === key)?.value ?? 0;
+  return { forward: get("tap_forward"), back: get("tap_back"), exit: get("tap_exit"), nextStory: get("swipe_forward") };
 }
 
 // ============================================================================
