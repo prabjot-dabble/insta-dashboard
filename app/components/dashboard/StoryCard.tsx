@@ -20,10 +20,10 @@ export function StoryCard({ label, item }: StoryCardProps) {
       href={item.permalink ?? undefined}
       target={item.permalink ? "_blank" : undefined}
       rel={item.permalink ? "noreferrer" : undefined}
-      className="flex flex-col gap-4 bg-surface p-4 transition-[transform,box-shadow] duration-150 ease-spring hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-16px_rgba(28,30,27,0.35)] active:translate-y-0 active:scale-[0.996] sm:flex-row sm:items-center sm:gap-6 md:p-6"
+      className="card flex flex-col gap-4 p-4 transition-[transform,box-shadow,border-color] hover:border-border-strong duration-150 ease-spring hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-16px_rgba(28,30,27,0.35)] active:translate-y-0 active:scale-[0.996] sm:flex-row sm:items-center sm:gap-6 md:p-6"
     >
       {/* Stories are vertical, so the thumbnail is portrait (9:16-ish), not square. */}
-      <div className="w-[88px] shrink-0 bg-surface-sunken p-1">
+      <div className="w-[88px] shrink-0 overflow-hidden rounded bg-surface-sunken p-1">
         <div className="relative h-[124px] w-20 overflow-hidden">
           <MediaThumbnail src={item.thumbnailUrl ?? item.mediaUrl} alt="Story thumbnail" size={124} className="absolute top-0 left-1/2 -translate-x-1/2" />
         </div>
@@ -33,7 +33,7 @@ export function StoryCard({ label, item }: StoryCardProps) {
           <RankPill label={label} />
           <span className="tabular-nums text-[13px] text-ink-faint">{formatDate(item.timestamp)}</span>
         </div>
-        <div className="mt-4 grid grid-cols-3 gap-x-4 gap-y-4 bg-surface-sunken p-4">
+        <div className="mt-4 grid grid-cols-3 gap-x-4 gap-y-4 rounded bg-surface-sunken p-4">
           <InlineMetric label="Views" value={formatInteger(item.views)} />
           <InlineMetric label="Reach" value={formatInteger(item.reach)} />
           <InlineMetric label="Replies" value={formatInteger(item.replies)} />

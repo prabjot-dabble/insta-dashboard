@@ -23,7 +23,7 @@ export function ContentCard({ label, item }: ContentCardProps) {
       href={item.permalink ?? undefined}
       target={item.permalink ? "_blank" : undefined}
       rel={item.permalink ? "noreferrer" : undefined}
-      className="flex flex-col bg-surface p-4 transition-[transform,box-shadow] duration-150 ease-spring hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-16px_rgba(28,30,27,0.35)] active:translate-y-0 active:scale-[0.996] md:p-6"
+      className="card flex flex-col p-4 transition-[transform,box-shadow,border-color] hover:border-border-strong duration-150 ease-spring hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-16px_rgba(28,30,27,0.35)] active:translate-y-0 active:scale-[0.996] md:p-6"
     >
       <div className="mb-4 flex items-center justify-between gap-3">
         <RankPill label={label} />
@@ -31,7 +31,7 @@ export function ContentCard({ label, item }: ContentCardProps) {
       </div>
 
       <div className="mb-5 flex gap-4">
-        <div className="shrink-0 bg-surface-sunken p-1">
+        <div className="shrink-0 overflow-hidden rounded bg-surface-sunken p-1">
           <MediaThumbnail src={item.thumbnailUrl ?? item.mediaUrl} alt={truncateCaption(item.caption, 60)} size={88} />
         </div>
         <div className="flex min-w-0 flex-col justify-center">
@@ -41,7 +41,7 @@ export function ContentCard({ label, item }: ContentCardProps) {
       </div>
 
       <div>
-        <div className="grid grid-cols-3 gap-x-3 gap-y-4 bg-surface-sunken p-4 sm:grid-cols-4">
+        <div className="grid grid-cols-3 gap-x-3 gap-y-4 rounded bg-surface-sunken p-4 sm:grid-cols-4">
           <InlineMetric label="Views" value={formatInteger(item.views)} />
           <InlineMetric label="Reach" value={formatInteger(item.reach)} />
           <InlineMetric label="Eng. Rate" value={formatPercent(item.engagementRate)} />
@@ -65,9 +65,13 @@ export function ContentCard({ label, item }: ContentCardProps) {
   );
 }
 
-/** Solid green for BEST, quiet grey with red text for LOWEST, plain grey for anything neutral. */
+/** Blue tag for BEST, red tag for LOWEST, slate for anything neutral (e.g. LIVE NOW). */
 export function RankPill({ label }: { label: string }) {
   const style =
-    label === "BEST" ? "bg-accent text-white" : label === "LOWEST" ? "bg-surface-strong text-negative" : "bg-surface-strong text-ink-muted";
-  return <span className={`px-2 py-0.5 text-[10px] font-semibold tracking-[0.12em] uppercase ${style}`}>{label}</span>;
+    label === "BEST"
+      ? "border-blue-200 bg-accent-wash text-accent"
+      : label === "LOWEST"
+        ? "border-rose-200 bg-negative-wash text-negative"
+        : "border-border bg-surface-sunken text-ink-muted";
+  return <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] uppercase ${style}`}>{label}</span>;
 }

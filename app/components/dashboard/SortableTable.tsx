@@ -63,7 +63,7 @@ export function SortableTable<T>({
   }
 
   return (
-    <div className="overflow-x-auto bg-surface">
+    <div className="overflow-x-auto card">
       <table className="w-full min-w-[760px] border-collapse text-[13px]">
         <thead>
           <tr className="border-b border-border bg-surface-sunken">

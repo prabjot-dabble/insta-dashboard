@@ -35,10 +35,10 @@ export function Header({ dateSelection, onDateSelectionChange, onRefresh, isRefr
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-surface-sunken/90 backdrop-blur-md backdrop-saturate-150">
+    <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-sm backdrop-saturate-150">
       <div className="mx-auto flex min-h-20 max-w-[1360px] flex-wrap items-center justify-between gap-4 px-5 py-4 md:px-12">
         <div>
-          <div className="font-display text-2xl leading-none tracking-tight text-accent">Dabble Playart</div>
+          <div className="font-display text-[20px] leading-none font-bold tracking-tight text-ink">Dabble Playart</div>
           <div className="label-caps mt-1.5 tracking-[0.14em]">Instagram Analytics</div>
         </div>
 
@@ -49,7 +49,7 @@ export function Header({ dateSelection, onDateSelectionChange, onRefresh, isRefr
                 aria-label="Date range"
                 value={isCustom ? "custom" : dateSelection.preset}
                 onChange={(e) => handlePresetChange(e.target.value)}
-                className="appearance-none border border-border-strong bg-surface py-2 pr-8 pl-3 text-sm text-ink transition-colors duration-150 ease-spring focus:border-accent active:scale-[0.98]"
+                className="appearance-none rounded border border-border bg-surface py-2 shadow-sm pr-8 pl-3 text-sm text-ink transition-colors duration-150 ease-spring focus:border-accent active:scale-[0.98]"
               >
                 {DATE_PRESET_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -68,7 +68,7 @@ export function Header({ dateSelection, onDateSelectionChange, onRefresh, isRefr
                   aria-label="Start date"
                   value={customSince}
                   onChange={(e) => setCustomSince(e.target.value)}
-                  className="border border-border-strong bg-surface px-2 py-1.5 text-sm text-ink transition-colors duration-150 ease-spring focus:border-accent"
+                  className="rounded border border-border bg-surface px-2 py-1.5 text-sm text-ink transition-colors duration-150 ease-spring focus:border-accent"
                 />
                 <span className="text-ink-faint">–</span>
                 <input
@@ -76,13 +76,13 @@ export function Header({ dateSelection, onDateSelectionChange, onRefresh, isRefr
                   aria-label="End date"
                   value={customUntil}
                   onChange={(e) => setCustomUntil(e.target.value)}
-                  className="border border-border-strong bg-surface px-2 py-1.5 text-sm text-ink transition-colors duration-150 ease-spring focus:border-accent"
+                  className="rounded border border-border bg-surface px-2 py-1.5 text-sm text-ink transition-colors duration-150 ease-spring focus:border-accent"
                 />
                 <button
                   type="button"
                   onClick={applyCustomRange}
                   disabled={!customSince || !customUntil}
-                  className="border border-ink bg-ink px-3 py-1.5 text-sm text-bg transition-[opacity,transform] duration-150 ease-spring hover:opacity-85 active:scale-[0.96] disabled:opacity-40 disabled:active:scale-100"
+                  className="rounded border border-accent bg-accent px-3 py-1.5 text-sm text-bg transition-[opacity,transform] duration-150 ease-spring hover:opacity-85 active:scale-[0.96] disabled:opacity-40 disabled:active:scale-100"
                 >
                   Apply
                 </button>
@@ -94,7 +94,7 @@ export function Header({ dateSelection, onDateSelectionChange, onRefresh, isRefr
             type="button"
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="flex items-center gap-2 border border-border-strong bg-surface px-3 py-2 text-sm text-ink transition-[color,border-color,transform] duration-150 ease-spring hover:border-accent active:scale-[0.96] disabled:opacity-50 disabled:active:scale-100"
+            className="flex items-center gap-2 rounded border border-border bg-surface px-3 py-2 shadow-sm text-sm text-ink transition-[color,border-color,transform] duration-150 ease-spring hover:border-accent active:scale-[0.96] disabled:opacity-50 disabled:active:scale-100"
           >
             <span aria-hidden="true" className={isRefreshing ? "animate-spin" : ""}>
               ⟳
@@ -115,7 +115,7 @@ export function Header({ dateSelection, onDateSelectionChange, onRefresh, isRefr
               <form action="/api/auth/logout" method="post">
                 <button
                   type="submit"
-                  className="border border-border-strong bg-surface px-3 py-2 text-sm text-ink transition-[border-color,transform] duration-150 ease-spring hover:border-negative hover:text-negative active:scale-[0.96]"
+                  className="rounded border border-border bg-surface px-3 py-2 text-sm text-ink shadow-sm transition-[border-color,transform] duration-150 ease-spring hover:border-negative hover:text-negative active:scale-[0.96]"
                 >
                   Sign out
                 </button>

@@ -13,11 +13,11 @@ interface SectionHeadingProps {
  *  order, not decoration. */
 export function SectionHeading({ number, title, note, action }: SectionHeadingProps) {
   return (
-    <div className="mb-6 border-b border-border-strong pb-3">
+    <div className="mb-6 border-b border-border pb-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
         <div className="flex items-baseline gap-3">
-          <span className="font-display text-base text-ink-faint">{number}</span>
-          <h2 className="font-display text-[28px] leading-9 tracking-[-0.01em] text-accent md:text-[40px] md:leading-[48px]">
+          <span className="text-sm font-semibold tracking-[0.05em] text-accent">{number}</span>
+          <h2 className="font-display text-2xl leading-8 font-semibold tracking-[-0.015em] text-ink md:text-[26px] md:leading-[34px]">
             {title}
           </h2>
         </div>

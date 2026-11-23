@@ -22,15 +22,15 @@ export function KpiHeroRow({ items }: { items: KpiItem[] }) {
   return (
     <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-4">
       {items.map((item) => (
-        <div key={item.label} className="flex flex-col justify-between bg-surface p-4 md:p-6">
+        <div key={item.label} className="card flex flex-col justify-between p-4 md:p-6">
           <div>
             <div className="label-caps mb-1">{item.label}</div>
-            <div className="tabular-nums font-display text-[32px] leading-9 text-accent md:text-[48px] md:leading-[52px]">
+            <div className="tabular-nums font-display text-[30px] font-bold leading-9 tracking-[-0.025em] text-ink md:text-[38px] md:leading-[42px]">
               {item.value}
             </div>
           </div>
           {(item.delta || item.note) && (
-            <div className="mt-4 pt-2">
+            <div className="mt-4 border-t border-surface-sunken pt-2">
               {item.delta && (
                 <div className={`tabular-nums text-xs font-medium md:text-sm ${deltaColor(item.direction)}`}>{item.delta}</div>
               )}
@@ -48,10 +48,10 @@ export function KpiSecondaryRow({ items }: { items: KpiItem[] }) {
   return (
     <div className={`grid grid-cols-2 gap-3 md:gap-6 ${items.length === 5 ? "md:grid-cols-3 lg:grid-cols-5" : "md:grid-cols-4"}`}>
       {items.map((item, i) => (
-        <div key={item.label} className={`bg-surface p-4 ${items.length % 2 === 1 && i === items.length - 1 ? "col-span-2 md:col-span-1" : ""}`}>
+        <div key={item.label} className={`card p-4 ${items.length % 2 === 1 && i === items.length - 1 ? "col-span-2 md:col-span-1" : ""}`}>
           <div className="label-caps mb-1">{item.label}</div>
           <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-            <span className="tabular-nums font-display text-2xl leading-8 text-accent">{item.value}</span>
+            <span className="tabular-nums font-display text-[22px] font-semibold leading-7 tracking-[-0.02em] text-ink">{item.value}</span>
             {item.delta && <span className={`tabular-nums text-xs font-medium ${deltaColor(item.direction)}`}>{item.delta}</span>}
           </div>
         </div>
@@ -63,7 +63,7 @@ export function KpiSecondaryRow({ items }: { items: KpiItem[] }) {
 /** The breakdown strip (Likes / Comments / Shares / Saves / Replies) — one quiet tinted band. */
 export function KpiBreakdownStrip({ items }: { items: KpiItem[] }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 bg-surface-sunken px-4 py-3 md:justify-between md:px-6">
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 card px-4 py-3 md:justify-between md:px-6">
       {items.map((item, i) => (
         <div key={item.label} className="flex items-center gap-x-6">
           {i > 0 && <span aria-hidden className="hidden h-4 w-px bg-border-strong md:block" />}
@@ -83,7 +83,7 @@ export function InlineMetric({ label, value }: { label: string; value: string })
   return (
     <div>
       <div className="label-caps text-[10px]">{label}</div>
-      <div className="tabular-nums text-[13px] font-semibold text-accent">{value}</div>
+      <div className="tabular-nums text-[13px] font-semibold text-ink">{value}</div>
     </div>
   );
 }

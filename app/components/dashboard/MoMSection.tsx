@@ -50,7 +50,7 @@ function MoMTable({ data }: { data: MoMData }) {
       <p className="mb-4 text-xs text-ink-muted">
         {formatDayRange(data.currentRange)} compared with the same days last month, {formatDayRange(data.previousRange)}.
       </p>
-      <div className="overflow-x-auto bg-surface">
+      <div className="overflow-x-auto card">
         {/* On a phone the absolute "Change" column is hidden so the % change stays on screen
             without sideways scrolling; it returns from the sm breakpoint up. */}
         <table className="w-full border-collapse text-[13px] sm:min-w-[640px]">

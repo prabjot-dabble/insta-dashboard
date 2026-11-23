@@ -37,9 +37,9 @@ export function HBarList({
               {showShare && <span className="ml-2 text-ink-faint">{percentOf(item.value, sum)}</span>}
             </span>
           </div>
-          <div className="h-1.5 bg-surface-sunken">
+          <div className="h-1.5 overflow-hidden rounded-full bg-surface-sunken">
             <div
-              className={`h-full transition-[width] duration-500 ease-spring ${item.label === highlight ? "bg-negative" : "bg-accent-soft"}`}
+              className={`h-full rounded-full transition-[width] duration-500 ease-spring ${item.label === highlight ? "bg-negative" : "bg-accent-soft"}`}
               style={{ width: `${(item.value / max) * 100}%` }}
             />
           </div>
@@ -55,7 +55,7 @@ export function SplitBar({ parts }: { parts: Array<{ label: string; value: numbe
   const toneClass = { strong: "bg-accent", soft: "bg-accent-tint", muted: "bg-surface-strong", negative: "bg-negative" };
   return (
     <div>
-      <div className="flex h-3 w-full overflow-hidden bg-surface-sunken">
+      <div className="flex h-3 w-full overflow-hidden rounded-full bg-surface-sunken">
         {parts.map((p) => (
           <div key={p.label} className={toneClass[p.tone]} style={{ width: total ? `${(p.value / total) * 100}%` : 0 }} title={`${p.label}: ${formatInteger(p.value)}`} />
         ))}
@@ -63,7 +63,7 @@ export function SplitBar({ parts }: { parts: Array<{ label: string; value: numbe
       <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-ink-muted">
         {parts.map((p) => (
           <span key={p.label} className="inline-flex items-center gap-1.5">
-            <span aria-hidden className={`inline-block h-2.5 w-2.5 ${toneClass[p.tone]}`} />
+            <span aria-hidden className={`inline-block h-2.5 w-2.5 rounded-sm ${toneClass[p.tone]}`} />
             {p.label} <span className="tabular-nums text-ink">{percentOf(p.value, total)}</span>
           </span>
         ))}
@@ -86,7 +86,7 @@ export function DailyBars({ points, height = 96, format = formatInteger }: { poi
         {points.map((p) => (
           <div
             key={p.date}
-            className={`flex-1 ${p.date === peak.date ? "bg-accent" : "bg-accent-soft/70"}`}
+            className={`flex-1 rounded-t-[2px] ${p.date === peak.date ? "bg-accent" : "bg-accent-soft/70"}`}
             style={{ height: `${Math.max((p.value / max) * 100, 2)}%` }}
             title={`${label(p.date)}: ${format(p.value)}`}
           />
@@ -106,7 +106,7 @@ export function DailyBars({ points, height = 96, format = formatInteger }: { poi
 /** A white tile with a caps label — the basic container for a chart. */
 export function Tile({ title, children, className = "" }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-surface p-4 md:p-6 ${className}`}>
+    <div className={`card p-4 md:p-6 ${className}`}>
       <div className="label-caps mb-4">{title}</div>
       {children}
     </div>

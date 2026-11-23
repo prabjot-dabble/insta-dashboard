@@ -47,15 +47,15 @@ export function ContentPerformanceSection({ reelsState, feedState }: ContentPerf
         title="Content Performance"
         action={
           !loading && !bothFailed && combined.length > 0 ? (
-            <div className="flex w-fit gap-1 bg-surface p-1" role="group" aria-label="Filter content type">
+            <div className="card flex w-fit gap-1 p-1" role="group" aria-label="Filter content type">
               {FILTERS.map((f) => (
                 <button
                   key={f.value}
                   type="button"
                   onClick={() => setFilter(f.value)}
                   aria-pressed={filter === f.value}
-                  className={`px-3 py-1 text-[11px] font-semibold tracking-[0.12em] uppercase transition-colors ${
-                    filter === f.value ? "bg-accent text-white" : "text-ink-faint hover:text-ink"
+                  className={`rounded px-3 py-1 text-[11px] font-semibold tracking-[0.08em] uppercase transition-colors ${
+                    filter === f.value ? "bg-accent text-white shadow-sm" : "text-ink-muted hover:text-ink"
                   }`}
                 >
                   {f.label}
