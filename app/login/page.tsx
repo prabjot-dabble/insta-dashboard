@@ -31,6 +31,9 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
     <main className="flex min-h-screen items-center justify-center px-5">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
+          {/* Plain <img>: the image optimiser path is behind the sign-in gate. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/dabble-logo.png" alt="Dabble logo" width={200} height={100} className="mx-auto mb-3 h-[100px] w-[200px] object-cover mix-blend-multiply" />
           <div className="font-display text-[26px] leading-none font-bold tracking-tight text-ink">Dabble Playart</div>
           <div className="label-caps mt-2 tracking-[0.14em]">Instagram Analytics</div>
         </div>
