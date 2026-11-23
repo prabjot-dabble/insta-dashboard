@@ -31,24 +31,24 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
     <main className="flex min-h-screen items-center justify-center px-5">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="font-display text-3xl leading-none tracking-tight text-accent">Dabble Playart</div>
+          <div className="font-display text-[26px] leading-none font-bold tracking-tight text-ink">Dabble Playart</div>
           <div className="label-caps mt-2 tracking-[0.14em]">Instagram Analytics</div>
         </div>
 
-        <div className="bg-surface p-6 md:p-8">
-          <h1 className="font-display text-2xl text-ink">Sign in</h1>
+        <div className="card p-6 md:p-8">
+          <h1 className="font-display text-xl font-semibold tracking-tight text-ink">Sign in</h1>
           <p className="mt-1 text-sm text-ink-muted">Use your Dabble Google account. Access is limited to approved people.</p>
 
           {error && (
-            <p role="alert" className="mt-5 border border-negative/25 bg-negative-wash px-3 py-2.5 text-sm text-negative">
+            <p role="alert" className="mt-5 rounded border border-rose-200 bg-negative-wash px-3 py-2.5 text-sm text-negative">
               {MESSAGES[error] ?? MESSAGES.failed}
             </p>
           )}
-          {signedOut && !error && <p className="mt-5 bg-accent-wash px-3 py-2.5 text-sm text-accent">You&apos;ve been signed out.</p>}
+          {signedOut && !error && <p className="mt-5 rounded border border-blue-200 bg-accent-wash px-3 py-2.5 text-sm text-accent">You&apos;ve been signed out.</p>}
 
           <a
             href={href}
-            className="mt-6 flex w-full items-center justify-center gap-3 border border-border-strong bg-surface px-4 py-3 text-sm font-medium text-ink transition-[border-color,transform] duration-150 ease-spring hover:border-accent active:scale-[0.98]"
+            className="mt-6 flex w-full items-center justify-center gap-3 rounded border border-border bg-surface shadow-sm px-4 py-3 text-sm font-medium text-ink transition-[border-color,transform] duration-150 ease-spring hover:border-accent active:scale-[0.98]"
           >
             <GoogleMark />
             Sign in with Google

@@ -50,7 +50,7 @@ function CommentsContent({ data }: { data: CommentsData }) {
           ) : (
             <div className="flex flex-wrap gap-2">
               {data.topWords.map((w) => (
-                <span key={w.label} className="bg-surface-sunken px-2.5 py-1 text-[13px] text-ink">
+                <span key={w.label} className="rounded border border-border bg-surface-sunken px-2.5 py-1 text-[13px] text-ink">
                   {w.label} <span className="tabular-nums text-ink-faint">{w.value}</span>
                 </span>
               ))}
@@ -69,7 +69,7 @@ function CommentsContent({ data }: { data: CommentsData }) {
                   <div className="min-w-0">
                     <p className="text-sm text-ink">
                       {c.isQuestion && (
-                        <span className="mr-2 bg-negative-wash px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.12em] text-negative uppercase">
+                        <span className="mr-2 rounded border border-rose-200 bg-negative-wash px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.12em] text-negative uppercase">
                           Needs reply
                         </span>
                       )}

@@ -27,7 +27,7 @@ export function ErrorNotice({ sectionLabel, detail, isTokenError = false }: Erro
   }, [sectionLabel, detail]);
 
   return (
-    <div className="notice-enter flex items-center gap-2 border border-negative/25 bg-negative-wash px-4 py-3 text-sm text-negative">
+    <div className="notice-enter flex items-center gap-2 rounded-md border border-rose-200 bg-negative-wash px-4 py-3 text-sm text-negative">
       <span aria-hidden="true">⚠</span>
       <span>{isTokenError ? TOKEN_ERROR_MESSAGE : `${sectionLabel} is unavailable right now.`}</span>
     </div>
@@ -46,5 +46,5 @@ export function RankingNote({ tooNewCount, total, minAgeDays, noun }: { tooNewCo
 }
 
 export function EmptyState({ message = "No data available" }: { message?: string }) {
-  return <div className="border border-dashed border-border-strong px-4 py-10 text-center text-sm text-ink-muted">{message}</div>;
+  return <div className="rounded-md border border-dashed border-border-strong px-4 py-10 text-center text-sm text-ink-muted">{message}</div>;
 }

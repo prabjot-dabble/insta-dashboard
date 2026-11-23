@@ -2,14 +2,14 @@
 // is in flight. Sections load independently, so each uses whichever of these matches its shape.
 
 function Block({ className = "" }: { className?: string }) {
-  return <div className={`animate-pulse bg-surface-strong ${className}`} />;
+  return <div className={`animate-pulse rounded bg-surface-strong ${className}`} />;
 }
 
 export function SkeletonKpiHero() {
   return (
     <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="space-y-3 bg-surface p-4 md:p-6">
+        <div key={i} className="card space-y-3 p-4 md:p-6">
           <Block className="h-3 w-16" />
           <Block className="h-10 w-24" />
         </div>
@@ -33,7 +33,7 @@ export function SkeletonKpiRow({ count = 4 }: { count?: number }) {
 
 export function SkeletonCard() {
   return (
-    <div className="flex gap-5 bg-surface p-5">
+    <div className="card flex gap-5 p-5">
       <Block className="h-32 w-32 shrink-0" />
       <div className="flex-1 space-y-3">
         <Block className="h-3 w-16" />

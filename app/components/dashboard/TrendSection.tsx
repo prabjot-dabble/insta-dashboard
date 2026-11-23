@@ -48,7 +48,7 @@ function TrendCharts({ data }: { data: TrendData }) {
     <div className="space-y-4">
       {data.inProgress && (
         <p className="flex items-center gap-2 text-xs text-ink-muted">
-          <span aria-hidden className="inline-block h-3 w-3 shrink-0" style={{ background: IN_PROGRESS_FILL }} />
+          <span aria-hidden className="inline-block h-3 w-3 shrink-0 rounded-sm" style={{ background: IN_PROGRESS_FILL }} />
           {formatMonthLabel(data.inProgress.period)} is in progress ({data.inProgress.daysElapsed} of{" "}
           {data.inProgress.daysInMonth} days), so its bars will keep growing.
         </p>
@@ -93,7 +93,7 @@ function TrendMiniChart({ label, points, formatValue, inProgressPeriod, footnote
   const max = knownValues.length > 0 ? Math.max(...knownValues) : 0;
 
   return (
-    <div className="bg-surface p-4">
+    <div className="card p-4">
       <div className="label-caps mb-2">{label}</div>
       {/* Value sits above each bar; the hairline under the bars is the baseline. */}
       <div className="flex items-end gap-1 border-b border-border-strong pt-4" style={{ height: CHART_HEIGHT + 28 }}>
@@ -109,7 +109,7 @@ function TrendMiniChart({ label, points, formatValue, inProgressPeriod, footnote
               </span>
               {hasValue ? (
                 <div
-                  className={`w-5 transition-[height] duration-500 ease-spring sm:w-6 ${inProgress ? "border border-accent" : "bg-accent-soft"}`}
+                  className={`w-5 rounded-t-sm transition-[height] duration-500 ease-spring sm:w-6 ${inProgress ? "border border-accent" : "bg-accent-soft"}`}
                   style={{ height: barHeight, background: inProgress ? IN_PROGRESS_FILL : undefined }}
                   title={inProgress ? "Month in progress" : undefined}
                 />

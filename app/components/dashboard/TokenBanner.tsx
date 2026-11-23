@@ -15,7 +15,7 @@ export function TokenBanner({ state }: { state: FetchState<TokenStatus> }) {
     : `The Instagram access token expires ${daysLeft! <= 0 ? "today" : `in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`} (${formatDate(expiresAt)}). Renew it in Meta Business settings before then to avoid a gap in data.`;
 
   return (
-    <div className="notice-enter border-b border-negative/25 bg-negative-wash">
+    <div className="notice-enter border-b border-rose-200 bg-negative-wash">
       <div className="mx-auto max-w-[1360px] px-5 py-3 text-sm text-negative md:px-12">⚠ {message}</div>
     </div>
   );

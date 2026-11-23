@@ -20,7 +20,7 @@ export function ContentTable({ items, showSkipRate = false, showType = false, co
       key: "thumbnail",
       header: "",
       render: (item) => (
-        <div className="w-fit bg-surface-sunken p-0.5">
+        <div className="w-fit overflow-hidden rounded bg-surface-sunken p-0.5">
           <MediaThumbnail src={item.thumbnailUrl ?? item.mediaUrl} alt="" size={40} />
         </div>
       ),
@@ -47,8 +47,8 @@ export function ContentTable({ items, showSkipRate = false, showType = false, co
             header: "Type",
             render: (item) => (
               <span
-                className={`inline-block px-2 py-0.5 text-[10px] font-semibold tracking-[0.12em] uppercase ${
-                  item.contentType === "REEL" ? "bg-accent text-white" : item.contentType === "POST" ? "bg-surface-strong text-ink" : "bg-surface-sunken text-ink-muted"
+                className={`inline-block rounded border px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] uppercase ${
+                  item.contentType === "REEL" ? "border-ink bg-ink text-white" : item.contentType === "POST" ? "border-blue-200 bg-accent-wash text-accent" : "border-border bg-surface-sunken text-ink-muted"
                 }`}
               >
                 {item.contentType}
@@ -63,7 +63,7 @@ export function ContentTable({ items, showSkipRate = false, showType = false, co
       render: (item) => (
         <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-ink-muted">
           {formatDate(item.timestamp)}
-          <span className="bg-surface-sunken px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-ink-faint uppercase">
+          <span className="rounded bg-surface-sunken px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-ink-faint uppercase">
             {formatWeekday(item.timestamp)}
           </span>
         </span>
