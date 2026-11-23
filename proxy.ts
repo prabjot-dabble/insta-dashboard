@@ -17,7 +17,7 @@ import { isEmailAllowed } from "@/lib/auth/access";
 import { SESSION_COOKIE, readSessionToken } from "@/lib/auth/session";
 
 /** Reachable without signing in: the login page and the sign-in/out endpoints themselves. */
-const PUBLIC_PATHS = new Set(["/login", "/api/auth/login", "/api/auth/callback", "/api/auth/logout"]);
+const PUBLIC_PATHS = new Set(["/login", "/api/auth/login", "/api/auth/callback", "/api/auth/logout", "/dabble-logo.png"]);
 
 function unauthenticated(request: NextRequest, error?: string): NextResponse {
   const { pathname, search } = request.nextUrl;
