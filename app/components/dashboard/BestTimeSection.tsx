@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import type { FetchState } from "@/app/lib/useApiData";
 import type { AudienceData, ContentItem, PartialListResult } from "@/app/lib/types";
 import { formatInteger } from "@/app/lib/format";
@@ -67,48 +68,83 @@ export function BestTimeSection({
   );
 }
 
+/** Five shades, lightest to darkest. Each covers a fifth of the 168 day-hour slots (ranked), so
+ *  the busy daytime hours, which are all close in raw numbers, still separate visibly. */
+const SHADES = ["#eef2f7", "#c7d7f5", "#89aef0", "#3b74e6", "#1e3a8a"];
+const SHADE_TEXT = ["Quietest", "Quiet", "Average", "Busy", "Busiest"];
+const TOP_SLOTS = 5;
+
 function Heatmap({ grid }: { grid: number[][] }) {
-  const max = Math.max(1, ...grid.flat());
-  const min = Math.min(...grid.flat());
+  const cells = grid.flatMap((row, d) => row.map((v, h) => ({ d, h, v })));
+  const sorted = [...cells].map((c) => c.v).sort((a, b) => a - b);
+  // Upper bound of each of the first four shades (quintiles of the ranked values).
+  const cuts = [1, 2, 3, 4].map((q) => sorted[Math.floor((q * sorted.length) / 5)] ?? 0);
+  const shadeOf = (v: number) => cuts.filter((c) => v >= c).length;
+  const top = [...cells].sort((a, b) => b.v - a.v).slice(0, TOP_SLOTS);
+  const isTop = (d: number, h: number) => top.some((t) => t.d === d && t.h === h);
+  const ranges = SHADES.map((_, i) => {
+    const lo = i === 0 ? sorted[0] : cuts[i - 1];
+    const hi = i === 4 ? sorted[sorted.length - 1] : cuts[i];
+    return `${formatInteger(lo)}–${formatInteger(hi)}`;
+  });
+
   return (
-    <div className="overflow-x-auto">
-      <div className="min-w-[620px]">
-        <div className="grid grid-cols-[36px_repeat(24,1fr)] gap-[2px]">
-          <span />
-          {Array.from({ length: 24 }, (_, h) => (
-            <span key={h} className="text-center text-[9px] text-ink-faint">{h % 3 === 0 ? hourLabel(h).replace(" ", "") : ""}</span>
+    <div className="space-y-5">
+      <div>
+        <p className="label-caps mb-2">Busiest slots</p>
+        <ol className="flex flex-wrap gap-2">
+          {top.map((t, i) => (
+            <li key={`${t.d}-${t.h}`} className="flex items-center gap-2 rounded border border-border bg-surface px-2.5 py-1.5 text-[13px]">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-ink text-[10px] font-semibold text-white">{i + 1}</span>
+              <span className="font-medium text-ink">{DAYS[t.d]} {hourLabel(t.h)}</span>
+              <span className="tabular-nums text-ink-muted">~{formatInteger(t.v)} online</span>
+            </li>
           ))}
-          {grid.map((row, d) => (
-            <Row key={d} label={DAYS[d]} row={row} min={min} max={max} />
-          ))}
-        </div>
-        <div className="mt-3 flex items-center gap-2 text-[11px] text-ink-muted">
-          Fewer online
-          <span className="inline-flex">
-            {[0.1, 0.3, 0.55, 0.8, 1].map((o) => (
-              <span key={o} className="inline-block h-2.5 w-5 bg-accent" style={{ opacity: o }} />
+        </ol>
+      </div>
+
+      <div className="overflow-x-auto">
+        <div className="min-w-[620px]">
+          <div className="grid grid-cols-[36px_repeat(24,1fr)] gap-[2px]">
+            <span />
+            {Array.from({ length: 24 }, (_, h) => (
+              <span key={h} className="text-center text-[9px] text-ink-faint">{h % 3 === 0 ? hourLabel(h).replace(" ", "") : ""}</span>
             ))}
-          </span>
-          More online
+            {grid.map((row, d) => (
+              <Fragment key={d}>
+                <span className="self-center text-[11px] text-ink-muted">{DAYS[d]}</span>
+                {row.map((v, h) => {
+                  const shade = shadeOf(v);
+                  return (
+                    <span
+                      key={h}
+                      className="flex h-7 items-center justify-center rounded-[2px]"
+                      style={{ backgroundColor: SHADES[shade] }}
+                      title={`${DAYS[d]} ${hourLabel(h)}: ~${formatInteger(v)} followers online (${SHADE_TEXT[shade].toLowerCase()})`}
+                    >
+                      {isTop(d, h) && <span className="h-2 w-2 rounded-full bg-white ring-2 ring-amber-400" />}
+                    </span>
+                  );
+                })}
+              </Fragment>
+            ))}
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-ink-muted">
+            {SHADES.map((c, i) => (
+              <span key={c} className="inline-flex items-center gap-1.5">
+                <span className="inline-block h-3 w-3 rounded-[2px] border border-border" style={{ backgroundColor: c }} />
+                {SHADE_TEXT[i]} <span className="tabular-nums text-ink-faint">({ranges[i]})</span>
+              </span>
+            ))}
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-block h-2 w-2 rounded-full bg-white ring-2 ring-amber-400" />
+              Top {TOP_SLOTS} slots
+            </span>
+          </div>
         </div>
       </div>
     </div>
-  );
-}
-
-function Row({ label, row, min, max }: { label: string; row: number[]; min: number; max: number }) {
-  return (
-    <>
-      <span className="self-center text-[11px] text-ink-muted">{label}</span>
-      {row.map((v, h) => (
-        <span
-          key={h}
-          className="h-6 bg-accent"
-          style={{ opacity: 0.08 + 0.92 * ((v - min) / Math.max(1, max - min)) }}
-          title={`${label} ${hourLabel(h)}: ~${formatInteger(v)} followers online`}
-        />
-      ))}
-    </>
   );
 }
 
