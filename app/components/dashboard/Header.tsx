@@ -34,81 +34,86 @@ export function Header({ dateSelection, onDateSelectionChange, onRefresh, isRefr
     }
   }
 
+  const field = "rounded border border-border bg-surface text-sm text-ink transition-colors duration-150 ease-spring focus:border-accent";
+
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-sm backdrop-saturate-150">
-      <div className="mx-auto flex min-h-20 max-w-[1360px] flex-wrap items-center justify-between gap-4 px-5 py-4 md:px-12">
-        <div>
-          <div className="font-display text-[20px] leading-none font-bold tracking-tight text-ink">Dabble Playart</div>
-          <div className="label-caps mt-1.5 tracking-[0.14em]">Instagram Analytics</div>
+    // Sticky only from tablet up: on a phone a two-row sticky bar would eat a big slice of the screen.
+    <header className="z-40 border-b border-border bg-surface/95 backdrop-blur-sm backdrop-saturate-150 md:sticky md:top-0">
+      <div className="mx-auto flex max-w-[1360px] flex-wrap items-center justify-between gap-x-3 gap-y-3 px-4 py-3 md:min-h-20 md:justify-start md:px-12 md:py-4">
+        <div className="order-1 md:mr-auto">
+          <div className="font-display text-[18px] leading-none font-bold tracking-tight text-ink md:text-[20px]">Dabble Playart</div>
+          <div className="label-caps mt-1.5 hidden tracking-[0.14em] sm:block">Instagram Analytics</div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <select
-                aria-label="Date range"
-                value={isCustom ? "custom" : dateSelection.preset}
-                onChange={(e) => handlePresetChange(e.target.value)}
-                className="appearance-none rounded border border-border bg-surface py-2 shadow-sm pr-8 pl-3 text-sm text-ink transition-colors duration-150 ease-spring focus:border-accent active:scale-[0.98]"
-              >
-                {DATE_PRESET_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-                <option value="custom">Custom</option>
-              </select>
-              <span className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 text-xs text-ink-faint">▾</span>
-            </div>
-
-            {isCustom && (
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  aria-label="Start date"
-                  value={customSince}
-                  onChange={(e) => setCustomSince(e.target.value)}
-                  className="rounded border border-border bg-surface px-2 py-1.5 text-sm text-ink transition-colors duration-150 ease-spring focus:border-accent"
-                />
-                <span className="text-ink-faint">–</span>
-                <input
-                  type="date"
-                  aria-label="End date"
-                  value={customUntil}
-                  onChange={(e) => setCustomUntil(e.target.value)}
-                  className="rounded border border-border bg-surface px-2 py-1.5 text-sm text-ink transition-colors duration-150 ease-spring focus:border-accent"
-                />
-                <button
-                  type="button"
-                  onClick={applyCustomRange}
-                  disabled={!customSince || !customUntil}
-                  className="rounded border border-accent bg-accent px-3 py-1.5 text-sm text-bg transition-[opacity,transform] duration-150 ease-spring hover:opacity-85 active:scale-[0.96] disabled:opacity-40 disabled:active:scale-100"
-                >
-                  Apply
-                </button>
-              </div>
-            )}
+        {/* Date controls: a full-width second row on phones, inline on larger screens. */}
+        <div className="order-3 flex w-full flex-wrap items-center gap-2 md:order-2 md:w-auto md:gap-3">
+          <div className="relative flex-1 md:flex-none">
+            <select
+              aria-label="Date range"
+              value={isCustom ? "custom" : dateSelection.preset}
+              onChange={(e) => handlePresetChange(e.target.value)}
+              className={`w-full appearance-none py-2 pr-8 pl-3 shadow-sm active:scale-[0.98] md:w-auto ${field}`}
+            >
+              {DATE_PRESET_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+              <option value="custom">Custom</option>
+            </select>
+            <span className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 text-xs text-ink-faint">▾</span>
           </div>
 
+          <div className="text-xs whitespace-nowrap text-ink-muted md:order-last">
+            Updated {isRefreshing ? "…" : formatRelativeTime(lastUpdated)}
+          </div>
+
+          {isCustom && (
+            <div className="flex w-full items-center gap-2 md:w-auto">
+              <input
+                type="date"
+                aria-label="Start date"
+                value={customSince}
+                onChange={(e) => setCustomSince(e.target.value)}
+                className={`min-w-0 flex-1 px-2 py-1.5 md:flex-none ${field}`}
+              />
+              <span className="text-ink-faint">–</span>
+              <input
+                type="date"
+                aria-label="End date"
+                value={customUntil}
+                onChange={(e) => setCustomUntil(e.target.value)}
+                className={`min-w-0 flex-1 px-2 py-1.5 md:flex-none ${field}`}
+              />
+              <button
+                type="button"
+                onClick={applyCustomRange}
+                disabled={!customSince || !customUntil}
+                className="rounded border border-accent bg-accent px-3 py-1.5 text-sm text-bg transition-[opacity,transform] duration-150 ease-spring hover:opacity-85 active:scale-[0.96] disabled:opacity-40 disabled:active:scale-100"
+              >
+                Apply
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="order-2 flex items-center gap-2 md:order-3 md:gap-3">
           <button
             type="button"
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="flex items-center gap-2 rounded border border-border bg-surface px-3 py-2 shadow-sm text-sm text-ink transition-[color,border-color,transform] duration-150 ease-spring hover:border-accent active:scale-[0.96] disabled:opacity-50 disabled:active:scale-100"
+            aria-label="Refresh data"
+            className="flex items-center gap-2 rounded border border-border bg-surface px-3 py-2 text-sm text-ink shadow-sm transition-[color,border-color,transform] duration-150 ease-spring hover:border-accent active:scale-[0.96] disabled:opacity-50 disabled:active:scale-100"
           >
             <span aria-hidden="true" className={isRefreshing ? "animate-spin" : ""}>
               ⟳
             </span>
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
           </button>
 
-          <div className="text-xs whitespace-nowrap text-ink-muted">
-            Updated {isRefreshing ? "…" : formatRelativeTime(lastUpdated)}
-          </div>
-
           {user && (
-            <div className="flex items-center gap-3 border-l border-border pl-3">
-              <span className="hidden max-w-[180px] truncate text-xs text-ink-muted md:inline" title={user.email}>
+            <div className="flex items-center gap-3 md:border-l md:border-border md:pl-3">
+              <span className="hidden max-w-[180px] truncate text-xs text-ink-muted lg:inline" title={user.email}>
                 {user.name ?? user.email}
               </span>
               {/* A real form POST, so signing out works even if page scripts fail. */}

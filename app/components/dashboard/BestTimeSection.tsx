@@ -103,7 +103,37 @@ function Heatmap({ grid }: { grid: number[][] }) {
         </ol>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Phones: turned sideways (days across, hours down) so all seven days fit without scrolling. */}
+      <div className="md:hidden">
+        <div className="grid grid-cols-[44px_repeat(7,1fr)] gap-[2px]">
+          <span />
+          {DAYS.map((day) => (
+            <span key={day} className="pb-1 text-center text-[11px] text-ink-muted">
+              {day}
+            </span>
+          ))}
+          {Array.from({ length: 24 }, (_, h) => (
+            <Fragment key={h}>
+              <span className="self-center pr-1 text-right text-[10px] text-ink-faint">{hourLabel(h).replace(" ", "")}</span>
+              {grid.map((row, d) => {
+                const shade = shadeOf(row[h]);
+                return (
+                  <span
+                    key={d}
+                    className="flex h-6 items-center justify-center rounded-[2px]"
+                    style={{ backgroundColor: SHADES[shade] }}
+                    title={`${DAYS[d]} ${hourLabel(h)}: ~${formatInteger(row[h])} followers online (${SHADE_TEXT[shade].toLowerCase()})`}
+                  >
+                    {isTop(d, h) && <span className="h-2 w-2 rounded-full bg-white ring-2 ring-amber-400" />}
+                  </span>
+                );
+              })}
+            </Fragment>
+          ))}
+        </div>
+      </div>
+
+      <div className="hidden overflow-x-auto md:block">
         <div className="min-w-[620px]">
           <div className="grid grid-cols-[36px_repeat(24,1fr)] gap-[2px]">
             <span />
@@ -129,20 +159,20 @@ function Heatmap({ grid }: { grid: number[][] }) {
               </Fragment>
             ))}
           </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-ink-muted">
-            {SHADES.map((c, i) => (
-              <span key={c} className="inline-flex items-center gap-1.5">
-                <span className="inline-block h-3 w-3 rounded-[2px] border border-border" style={{ backgroundColor: c }} />
-                {SHADE_TEXT[i]} <span className="tabular-nums text-ink-faint">({ranges[i]})</span>
-              </span>
-            ))}
-            <span className="inline-flex items-center gap-1.5">
-              <span className="inline-block h-2 w-2 rounded-full bg-white ring-2 ring-amber-400" />
-              Top {TOP_SLOTS} slots
-            </span>
-          </div>
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-ink-muted">
+        {SHADES.map((c, i) => (
+          <span key={c} className="inline-flex items-center gap-1.5">
+            <span className="inline-block h-3 w-3 rounded-[2px] border border-border" style={{ backgroundColor: c }} />
+            {SHADE_TEXT[i]} <span className="tabular-nums text-ink-faint">({ranges[i]})</span>
+          </span>
+        ))}
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-full bg-white ring-2 ring-amber-400" />
+          Top {TOP_SLOTS} slots
+        </span>
       </div>
     </div>
   );

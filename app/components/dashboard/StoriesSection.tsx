@@ -182,7 +182,7 @@ function StoryHistory({ history }: { history: ArchivedStory[] }) {
         <div className="label-caps">Past stories (last 30 days)</div>
         <div className="text-[11px] text-ink-faint">Saved by this dashboard while each story was live; numbers are the last ones seen.</div>
       </div>
-      <div className="overflow-x-auto card">
+      <div className="table-pin-first overflow-x-auto card">
         <table className="w-full min-w-[640px] border-collapse text-[13px]">
           <thead>
             <tr className="border-b border-border bg-surface-sunken">

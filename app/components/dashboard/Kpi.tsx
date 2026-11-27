@@ -25,7 +25,7 @@ export function KpiHeroRow({ items }: { items: KpiItem[] }) {
         <div key={item.label} className="card flex flex-col justify-between p-4 md:p-6">
           <div>
             <div className="label-caps mb-1">{item.label}</div>
-            <div className="tabular-nums font-display text-[30px] font-bold leading-9 tracking-[-0.025em] text-ink md:text-[38px] md:leading-[42px]">
+            <div className="tabular-nums font-display text-[24px] font-bold leading-8 sm:text-[30px] sm:leading-9 tracking-[-0.025em] text-ink md:text-[38px] md:leading-[42px]">
               {item.value}
             </div>
           </div>
@@ -51,7 +51,7 @@ export function KpiSecondaryRow({ items }: { items: KpiItem[] }) {
         <div key={item.label} className={`card p-4 ${items.length % 2 === 1 && i === items.length - 1 ? "col-span-2 md:col-span-1" : ""}`}>
           <div className="label-caps mb-1">{item.label}</div>
           <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-            <span className="tabular-nums font-display text-[22px] font-semibold leading-7 tracking-[-0.02em] text-ink">{item.value}</span>
+            <span className="tabular-nums font-display text-[20px] font-semibold leading-7 sm:text-[22px] tracking-[-0.02em] text-ink">{item.value}</span>
             {item.delta && <span className={`tabular-nums text-xs font-medium ${deltaColor(item.direction)}`}>{item.delta}</span>}
           </div>
         </div>
