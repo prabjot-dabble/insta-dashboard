@@ -92,3 +92,21 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Wide tables on phones: keep the first column (the row's name) in view while swiping sideways. */
+@media (max-width: 767px) {
+  .table-pin-first th:first-child,
+  .table-pin-first td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--color-surface);
+    box-shadow: 1px 0 0 var(--color-border);
+  }
+  .table-pin-first thead th:first-child {
+    background: var(--color-surface-sunken);
+  }
+  .table-pin-first tr.bg-accent-wash td:first-child {
+    background: var(--color-accent-wash);
+  }
+}

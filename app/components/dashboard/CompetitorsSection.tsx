@@ -21,7 +21,7 @@ export function CompetitorsSection({ state, number }: { state: FetchState<Compet
       {state.status === "loading" && <SkeletonTable rows={4} />}
       {state.status === "error" && <ErrorNotice sectionLabel="Competitor Benchmark" detail={state.message} isTokenError={state.isTokenError} />}
       {state.status === "success" && (
-        <div className="overflow-x-auto card">
+        <div className="table-pin-first overflow-x-auto card">
           <table className="w-full min-w-[720px] border-collapse text-[13px]">
             <thead>
               <tr className="border-b border-border bg-surface-sunken">
